@@ -41,8 +41,8 @@ repo_clone() {
     #A3_REPO_EMAIL=
     #A3_REPO_TOKEN=
     #A3_CLASS_DIAGRAM=class-diagram.puml
-   export A3_REPO_DIR=${A3_REPO_DIR:-a3-repo}
- 
+    export A3_REPO_DIR=${A3_REPO_DIR:-a3-repo}
+
     req A3_REPO_USER A3_REPO_EMAIL A3_REPO_TOKEN A3_REPO_GIT A3_REPO_DIR A3_CLASS_DIAGRAM
 
     git config --global user.name "${A3_REPO_USER}"
