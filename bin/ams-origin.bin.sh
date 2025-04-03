@@ -69,8 +69,6 @@ ams_resource() {
         echo "default"
     elif [[ "${CI_COMMIT_REF_PROTECTED}" == "true" ]]; then
         echo "protected"
-    elif [[ "${CI_COMMIT_BRANCH}" == ISPO-* ]]; then
-        echo "jira"
     else
         echo "experimental"
     fi

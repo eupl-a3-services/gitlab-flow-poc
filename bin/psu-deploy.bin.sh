@@ -73,11 +73,11 @@ portainer_deploy() {
     ansi-cat ${DOCKER_COMPOSE}
     PORTAINER_STACK=${PORTAINER_PORTS_ARRAY[0]}-${CI_PROJECT_PATH_SLUG}-${CI_ENVIRONMENT_NAME}
     if [ "$PORTAINER_TYPE" = "swarm" ]; then
-        PORTAINER_STACK="ISPO-${CI_ENVIRONMENT_NAME}-${CI_PROJECT_NAME}"
+        PORTAINER_STACK="swarm-is-not-supported"
     fi
     echo ${PORTAINER_STACK,,} " - NO_DEPLOY_TO_PORTAINER = ${NO_DEPLOY_TO_PORTAINER}"
     if [ "${NO_DEPLOY_TO_PORTAINER}" = "true" ]; then
-        echo "Nenasadzujem na Portainer !!! " && exit
+        echo "Not deploying to Portainer !!! " && exit
     fi
     psu deploy --name=${PORTAINER_STACK,,} --compose-file=${DOCKER_COMPOSE} --user=${PORTAINER_USER} --password=${PORTAINER_PASSWORD} --url=${PORTAINER_HOST} --endpoint=${PORTAINER_ENDPOINT} --verbose --insecure
 }

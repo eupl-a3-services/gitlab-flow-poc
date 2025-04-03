@@ -43,11 +43,11 @@ repo_clone() {
     export A3_REPO_DIR=${A3_REPO_DIR:-a3-repo}
     #A3_CLASS_DIAGRAM=class-diagram.puml
 
-    req A3_REPO_USER A3_REPO_EMAIL A3_REPO_TOKEN A3_REPO_DIR A3_CLASS_DIAGRAM
+    req A3_REPO_USER A3_REPO_EMAIL A3_REPO_TOKEN A3_REPO_GIT A3_REPO_DIR A3_CLASS_DIAGRAM
 
     git config --global user.name "${A3_REPO_USER}"
     git config --global user.email "${A3_REPO_EMAIL}"
-    git clone https://gitlab-ci-token:${A3_REPO_TOKEN}@gitlab.com/ispo-dev/support/a3.git ${A3_REPO_DIR}
+    git clone https://gitlab-ci-token:${A3_REPO_TOKEN}@${A3_REPO_GIT} ${A3_REPO_DIR}
 }
 
 repo_handler() {
@@ -55,9 +55,9 @@ repo_handler() {
     A3_PUML_PROPERTIES=${A3_PUML_DIR}/puml.properties
 
     if [ -n "$CI_COMMIT_TAG" ]; then
-      A3_CLASS_DIAGRAM_PUML=ispo-${AMS_REVISION%%-*}.puml
+      A3_CLASS_DIAGRAM_PUML=cd-${AMS_REVISION%%-*}.puml
     else
-      A3_CLASS_DIAGRAM_PUML=ispo-${AMS_REVISION%%-*}-${CI_COMMIT_REF_NAME#a3-}.puml
+      A3_CLASS_DIAGRAM_PUML=cd-${AMS_REVISION%%-*}-${CI_COMMIT_REF_NAME#a3-}.puml
     fi
     log VALUE A3_CLASS_DIAGRAM_PUML ${A3_CLASS_DIAGRAM_PUML}
 
