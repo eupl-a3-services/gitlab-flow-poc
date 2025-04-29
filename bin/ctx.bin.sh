@@ -1,10 +1,10 @@
 #!/bin/bash
 
-ams_hub_ctx() {
-    _context 80 20 AMS-HUB-CTX
-    _ctx AMS_HUB_NAME ${AMS_HUB_NAME}
-    _ctx AMS_HUB_REVISION ${AMS_HUB_REVISION}
-    _ctx AMS_HUB_BUILD ${AMS_HUB_BUILD}
+ahs_origin_ctx() {
+    _context 80 20 AHS-CTX
+    _ctx AHS_NAME ${AHS_NAME}
+    _ctx AHS_REVISION ${AHS_REVISION}
+    _ctx AHS_BUILD ${AHS_BUILD}
     _ctx
 }
 
@@ -59,6 +59,13 @@ ams_ping_ctx() {
     _ctx
 }
 
+env_ctx(){
+    _context 80 20 ENV-CTX
+    _ctx ENV_REVISION ${ENV_REVISION}
+    _ctx ENV_BUILD ${ENV_BUILD}
+    _ctx
+}
+
 _context() {
     CTX_WIDTH=$1
     CTX_KEY_WIDTH=$2
@@ -84,13 +91,13 @@ _ctx() {
 }
 
 if [[ $# -eq 0 ]]; then
-    log INFO "Usage: $0 {AMS_HUB|AMS_ORIGIN|AMS_IMAGE|AMS_CONTAINER|AMS_PING}"
+    log INFO "Usage: $0 {AHS_ORIGIN|AMS_ORIGIN|AMS_IMAGE|AMS_CONTAINER|AMS_PING}"
     exit 1
 fi
 
 case "$1" in
-    AMS_HUB)
-        ams_hub_ctx
+    AHS_ORIGIN)
+        ahs_origin_ctx
         ;;
     AMS_ORIGIN)
         ams_origin_ctx
@@ -104,9 +111,12 @@ case "$1" in
     AMS_PING)
         ams_ping_ctx
         ;;
+    ENV)
+        env_ctx
+        ;;
     *)
         log ERROR "Invalid option: $1"
-        log INFO "Usage: $0 {AMS_HUB|AMS_ORIGIN|AMS_IMAGE|AMS_CONTAINER|AMS_PING}"
+        log INFO "Usage: $0 {AHS_ORIGIN|AMS_ORIGIN|AMS_IMAGE|AMS_CONTAINER|AMS_PING}"
         exit 2
         ;;
 esac

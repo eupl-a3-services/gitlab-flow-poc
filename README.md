@@ -6,6 +6,32 @@ This CI/CD pipeline is configured on GitLab and includes several stages for mana
 
 The pipeline uses the Docker image `a3services/hub-gitlab-flow:${AMS_REVISION}` as the base image for executing jobs.
 
+## Prerequisites
+
+| env_variable               | flags   | value / description                            | usage in job  |
+|:---------------------------|:--------|:-----------------------------------------------|:--------------|
+| A3_REPO_GIT                | V/P/E/- | gitlab.com/<PROJECT_ROOT_GROUP>/support/a3.git | ----------    |
+| AMS_DOMAIN                 | V/P/-/- | <DOMAIN>.dev                                   | All (default) |
+| CI_HOME                    | V/P/E/- | /cache-volume/ci/${CI_PROJECT_PATH}            | ams-origin    |
+| ? CI_GROUP_ID              | V/-/E/- | 15786414                                       | All (default) |
+| ? CI_JOB_TOKEN_A3          | V/-/E/- | •••••                                          | All (default) |
+| ENV_HOME                   | V/-/E/- | /cache-volume/env                              | All (default) |
+| GIT_DEPTH                  | V/-/E/- | 1                                              | All (default) |
+| GIT_STRATEGY               | V/-/E/- | clone                                          | All (default) |
+| ? GLR_HOME                 | V/P/E/- | /cache-volume/glr                              | All (default) |
+| KUBECONFIG                 | F/P/E/- | •••••                                          | All (default) |
+| MVN_HOME                   | V/-/E/- | /cache-volume/mvn                              | All (default) |
+| NPM_HOME                   | V/-/E/- | /cache-volume/npm/${CI_PROJECT_PATH_SLUG}      | All (default) |
+| ? PACKAGE_REPO_READ_TOKEN  | V/-/E/M | •••••                                          | All (default) |
+| ? PORTAINER_HOST           | V/P/E/- | •••••                                          | All (default) |
+| ? PORTAINER_PASSWORD       | V/P/E/M | •••••                                          | All (default) |
+| ? PORTAINER_USER           | V/P/E/- | •••••                                          | All (default) |
+| ? RELEASE_DEFAUTL          | V/P/E/- | 0/default/develop                              | All (default) |
+| ? RELEASE_HOME             | V/P/E/- | /cache-volume/release/${CI_PROJECT_PATH_SLUG}  | All (default) |
+| ROLLOUT_DEFAULT            | V/P/E/- | 0/1.6.0/war-room                               | ams-origin    |
+| ROLLOUT_HOME               | V/-/E/- | /cache-volume/rolout/${CI_PROJECT_PATH}        | ams-origin    |
+
+
 ## Pipeline Stages
 The pipeline is divided into multiple stages:
 
@@ -35,8 +61,8 @@ The pipeline is divided into multiple stages:
         - ams-origin
     artifacts:
         reports:
-        dotenv:
-            - ams-origin.env
+            dotenv:
+                - ams-origin.env
     tags:
         - <tag>
     ```

@@ -90,7 +90,7 @@ repo_push() {
 }
 
 
-ctx AMS_HUB
+ctx AHS_ORIGIN
 ctx AMS_ORIGIN
 
 argument_config "$@"

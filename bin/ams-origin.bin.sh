@@ -104,6 +104,7 @@ env_files() {
     if [ -n "$CI_COMMIT_TAG" ]; then
         export AMS_REVISION="$CI_COMMIT_TAG"
     elif [ -d .git ]; then
+        git config --global --add safe.directory ${PWD}
         if [ "${AMS_LOG_LEVEL}" = "DEBUG" ]; then
             git fetch --unshallow || git fetch
         else
@@ -144,7 +145,7 @@ env_files() {
     else
         mkdir -p "$(dirname "${SHA_ROLLOUT}")"
         ROLLOUT_REMOVED_FILES_COUNT=$(find "${ROLLOUT_HOME}" -type f -mtime +7 -exec rm -f {} \; -print | wc -l)
-        log INFO "Old rollout files older than one hour have been removed. Total removed files: ${ROLLOUT_REMOVED_FILES_COUNT}"
+        log INFO "Old rollout files older than 7 days have been removed. Total removed files: ${ROLLOUT_REMOVED_FILES_COUNT}"
 
         echo "$AMS_ROLLOUT" > "${SHA_ROLLOUT}"
         log INFO "The rollout file \"${SHA_ROLLOUT}\" has been created with the value: \"${AMS_ROLLOUT}\""
@@ -175,9 +176,26 @@ EOF
     log INFO "Environment files ['${ORIGIN_ENV}', '${AMS_ORIGIN_ENV}'] have been created"
 }
 
-ctx AMS_HUB
+store_ci() {
+    log INFO "Storing CI ..."
+    if [ -n "$CI_COMMIT_BRANCH" ] && [ "${CI_COMMIT_REF_PROTECTED}" == "true" ]; then
+        # Uložiť obsah .gitlab-ci.yml do priečinka podľa hodnoty CI_COMMIT_BRANCH
+        mkdir -p "${CI_HOME}/${CI_COMMIT_BRANCH}"
+        cat .gitlab-ci.yml > "${CI_HOME}/${CI_COMMIT_BRANCH}/.gitlab-ci.yml"
+        log INFO "CI file [${CI_HOME}/${CI_COMMIT_BRANCH}/.gitlab-ci.yml] have been created"
+    else
+        if [ -z "$CI_COMMIT_BRANCH" ]; then
+            log WARN "CI_COMMIT_BRANCH is not defined. CI file was not created."
+        elif [ "${CI_COMMIT_REF_PROTECTED}" != "true" ]; then
+            log WARN "CI_COMMIT_REF_PROTECTED is not 'true'. CI file was not created."
+        fi
+    fi
+}
+
+ctx AHS_ORIGIN
 
 argument_config "$@"
 env_files
+store_ci
 
 ctx AMS_ORIGIN

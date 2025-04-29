@@ -1,15 +1,15 @@
 FROM alpine:3.21.3
 
-ARG AMS AMS_HUB_NAME AMS_HUB_REVISION AMS_HUB_BUILD
+ARG AMS AMS_NAME AMS_REVISION AMS_BUILD
 
 ENV AMS=${AMS} \
-    AMS_HUB_NAME=${AMS_HUB_NAME} \
-    AMS_HUB_REVISION=${AMS_HUB_REVISION} \
-    AMS_HUB_BUILD=${AMS_HUB_BUILD} \
+    AHS_NAME=${AMS_NAME} \
+    AHS_REVISION=${AMS_REVISION} \
+    AHS_BUILD=${AMS_BUILD} \
     TZ=Europe/Bratislava \
     DOCKER_BUILDKIT=1
 
-WORKDIR /opt/${AMS_HUB_NAME}
+WORKDIR /opt/${AMS_NAME}
 
 RUN apk upgrade && \
     apk --no-cache add bash curl jq docker-cli tzdata git kubectl envsubst yq highlight openjdk11-jre && \
@@ -18,8 +18,10 @@ RUN apk upgrade && \
     chmod +x /usr/local/lib/docker/cli-plugins/docker-buildx && \
     adduser -D a3user
 
-COPY bin/ ./bin
-COPY dist/ ./dist
+COPY opt/ .
+#COPY bin/ ./bin
+#COPY dist/ ./dist
+#COPY src/gitlab-ci-template/.gitlab-ci-template.yml ./.gitlab-ci-template.yml
 
 RUN chmod 775 ./bin/* && \
     chmod 775 ./dist/* && \

@@ -17,7 +17,7 @@ argument_config() {
             __DEBUG=true
             ;;
     esac
-    
+
     while [[ "$#" -gt 0 ]]; do
         case $1 in
             --inspect) __INSPECT=true ;;
@@ -36,13 +36,19 @@ argument_config() {
         source log level DEBUG
     fi
 }
-puml() {
-    mkdir -p ${JAVA_PUML_DIST}
-    java -jar /opt/gitlab-flow/dist/java-puml-builder.jar
+
+env_build() {
+    mkdir -p dist
+    export ENV_REVISION=${AMS_REVISION}
+    export ENV_BUILD=${AMS_BUILD}
+    ENV_HEAD=`echo -e "AHS_REVISION=${AHS_REVISION}\nAHS_BUILD=${AHS_BUILD}\nENV_REVISION=${ENV_REVISION}\nENV_BUILD=${ENV_BUILD}\n"`
+    (cd src && for FILE in *; do echo "${ENV_HEAD}" > ../dist/${FILE} && echo >> ../dist/${FILE} && cat ${FILE} >> ../dist/${FILE}; done)
 }
 
 ctx AHS_ORIGIN
 ctx AMS_ORIGIN
 
 argument_config "$@"
-puml
+env_build
+
+ctx ENV

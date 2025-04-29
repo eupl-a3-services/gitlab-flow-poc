@@ -63,7 +63,7 @@ check_deployment() {
   RESPONSE_ENV=$(echo "${BODY}"           | grep -o '<text id="env"[^>]*>[^<]*'       | sed 's/.*>\([^<]*\).*/\1/')
   RESPONSE_REVISION=$(echo "${BODY}"      | grep -o '<text id="revision"[^>]*>[^<]*'  | sed 's/.*>\([^<]*\).*/\1/')
 
-  RESPONSE_HUB_REVISION=$(echo "${BODY}"  | grep -o '<text id="hub"[^>]*>[^<]*'       | sed 's/.*>\([^<]*\).*/\1/')
+  #RESPONSE_HUB_REVISION=$(echo "${BODY}"  | grep -o '<text id="hub"[^>]*>[^<]*'       | sed 's/.*>\([^<]*\).*/\1/')
   RESPONSE_BUILD=$(echo "${BODY}"         | grep -o '<text id="build"[^>]*>[^<]*'     | sed 's/.*>\([^<]*\).*/\1/')
   RESPONSE_RELEASE=$(echo "${BODY}"       | grep -o '<text id="release"[^>]*>[^<]*'   | sed 's/.*>\([^<]*\).*/\1/')
   RESPONSE_RUN=$(echo "${BODY}"           | grep -o '<text id="run"[^>]*>[^<]*'       | sed 's/.*>\([^<]*\).*/\1/')
@@ -75,7 +75,7 @@ check_deployment() {
   compare_values "AMS_RELEASE"      "${AMS_RELEASE}"      "${RESPONSE_RELEASE}"
   compare_values "AMS_ENV"          "${AMS_ENV}"          "${RESPONSE_ENV}"
   echo "+-------------------+------------------------+------------------------+----------+"
-  compare_values "AMS_HUB_REVISION" "${AMS_HUB_REVISION}" "${RESPONSE_HUB_REVISION}"
+  #compare_values "AHS_HUB_REVISION" "${AMS_HUB_REVISION}" "${RESPONSE_HUB_REVISION}"
   compare_values "AMS_BUILD"        "${AMS_BUILD}"        "${RESPONSE_BUILD}"
   compare_values "AMS_RUN"          "${AMS_RUN}"          "${RESPONSE_RUN}"
   echo "+-------------------+------------------------+------------------------+----------+"

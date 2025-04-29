@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 40" width="80" height="40" font-family="monospace" font-size="10px" font-weight="bold">
     <rect width="80" height="40" fill="none" stroke="#000"/>
-    <text id="hub" x="2" y="-22">${AMS_HUB_REVISION}</text>
+    <text id="hub" x="2" y="-22">${AHS_REVISION}</text>
     <text id="build" x="2" y="-12">$${AMS_BUILD}</text>
     <text id="run" x="2" y="-2">$${AMS_RUN}</text>
     <text id="name" x="2" y="8.5">$${AMS_NAME}</text>

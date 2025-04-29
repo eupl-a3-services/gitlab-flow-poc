@@ -72,7 +72,7 @@ release() {
     export AMS_IMAGE_SIZE=$(docker inspect --format='{{.Size}}' ${AMS_IMAGE_REGISTRY} | awk '{print $1/1024/1024 " MB"}')
 }
 
-ctx AMS_HUB
+ctx AHS_ORIGIN
 ctx AMS_ORIGIN
 
 argument_config "$@"

@@ -90,7 +90,7 @@ ams_ping() {
     fi
 }
 
-ctx AMS_HUB
+ctx AHS_ORIGIN
 ctx AMS_ORIGIN
 
 argument_config "$@"
