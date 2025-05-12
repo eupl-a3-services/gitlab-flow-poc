@@ -28,8 +28,7 @@ argument_config() {
     done
 
     if [ "$__INSPECT" = true ]; then
-        PS4='\033[1G\033[K\033[1;36m$(date "+%y%m%d-%H%M%S")\033[0m \033[1;33m${BASH_SOURCE[0]}:${LINENO}\033[1;36m:\033[0m '
-        set -x
+        . setx INSPECT
     fi
 
     if [ "$__DEBUG" = true ]; then
@@ -75,18 +74,31 @@ ams_resource() {
 }
 
 ams_rollout() {
-    export AMS_ZONE="no-zone"
+    export AMS_SEGMENT="no-segment"
     export AMS_RELEASE="no-release"
     export AMS_BUSINESS="no-business"
+    export AMS_PARTITION="no-partition"
+
     if [[ "${AMS_RESOURCE}" == "protected" || "${AMS_RESOURCE}" == "tag" || "${AMS_RESOURCE}" == "default" ]]; then
-        if [[ "${AMS_ROLLOUT}" =~ ^([0-9]+)\/(.+)\/(.+)$ ]]; then
-            export AMS_ZONE="${BASH_REMATCH[1]}"
+        if [[ "${AMS_ROLLOUT}" =~ ^([@a-z0-9-]+)\/([^\/]+)\/([^\/]+)$ ]]; then
+            export AMS_SEGMENT="${BASH_REMATCH[1]}"
             export AMS_RELEASE="${BASH_REMATCH[2]}"
             export AMS_BUSINESS="${BASH_REMATCH[3]}"
+
+            if [[ "${AMS_SEGMENT}" == "@" ]]; then
+                export AMS_PARTITION="service"
+#            elif [[ "${AMS_SEGMENT}" == "-" ]]; then
+#                export AMS_PARTITION="core"
+            elif [[ "${AMS_SEGMENT}" =~ ^[0-9]+$ ]]; then
+                export AMS_PARTITION="zone"
+            elif [[ "${AMS_SEGMENT}" =~ ^[a-z]$ ]]; then
+                export AMS_PARTITION="shared"
+            fi
         else
-            export AMS_ZONE="no-regex-${AMS_RESOURCE}"
+            export AMS_SEGMENT="no-regex-${AMS_RESOURCE}"
             export AMS_RELEASE="no-regex-${AMS_RESOURCE}"
             export AMS_BUSINESS="no-regex-${AMS_RESOURCE}"
+            export AMS_PARTITION="no-regex-${AMS_RESOURCE}"
         fi
     fi
 }
@@ -124,12 +136,19 @@ env_files() {
     export AMS_RESOURCE=$(ams_resource)
 
     if [[ "${CI_COMMIT_BRANCH}" == "${CI_DEFAULT_BRANCH}" ]]; then
-        if [ -z "${ROLLOUT_DEFAULT}" ]; then
-            log ERROR "Environment varialble ROLLOUT_DEFAULT is not set!"
-            exit 1
+        if [[ "${AMS_PARTITION}" == "service" ]]; then
+            assert ENV ROLLOUT_DEFAULT_SERVICE
+            export AMS_ROLLOUT="${ROLLOUT_DEFAULT_SERVICE}"
+        elif [[ "${AMS_PARTITION}" == "shared" ]]; then
+            assert ENV ROLLOUT_DEFAULT_SHARED
+            export AMS_ROLLOUT="${ROLLOUT_DEFAULT_SHARED}"
+        else
+            assert ENV ROLLOUT_DEFAULT_ZONE
+            export AMS_ROLLOUT="${ROLLOUT_DEFAULT_ZONE}"
         fi
-        export AMS_ROLLOUT="${ROLLOUT_DEFAULT}"
     fi
+
+    assert ENV ROLLOUT_HOME
 
     SHA_ROLLOUT=${ROLLOUT_HOME}/${CI_COMMIT_SHA}
 
@@ -159,7 +178,8 @@ AMS_NAME=${AMS_NAME}
 AMS_REVISION=${AMS_REVISION}
 AMS_DIST=${AMS_DIST}
 AMS_BUILD=${AMS_BUILD}
-AMS_ZONE=${AMS_ZONE}
+AMS_SEGMENT=${AMS_SEGMENT}
+AMS_PARTITION=${AMS_PARTITION}
 AMS_RELEASE=${AMS_RELEASE}
 AMS_BUSINESS=${AMS_BUSINESS}
 AMS_ROLLOUT=${AMS_ROLLOUT}
@@ -179,7 +199,7 @@ EOF
 store_ci() {
     log INFO "Storing CI ..."
     if [ -n "$CI_COMMIT_BRANCH" ] && [ "${CI_COMMIT_REF_PROTECTED}" == "true" ]; then
-        # Uložiť obsah .gitlab-ci.yml do priečinka podľa hodnoty CI_COMMIT_BRANCH
+        assert ENV CI_HOME
         mkdir -p "${CI_HOME}/${CI_COMMIT_BRANCH}"
         cat .gitlab-ci.yml > "${CI_HOME}/${CI_COMMIT_BRANCH}/.gitlab-ci.yml"
         log INFO "CI file [${CI_HOME}/${CI_COMMIT_BRANCH}/.gitlab-ci.yml] have been created"

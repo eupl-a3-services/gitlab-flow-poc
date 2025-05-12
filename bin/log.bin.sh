@@ -7,7 +7,7 @@ log_level() {
     case "${LEVEL}" in
         HEAD|DEBUG|INFO|WARN|ERROR|SUCCESS)
             export AMS_LOG_LEVEL="${LEVEL}"
-            echo -e "\033[1;33m[INFO] Log level is set to: ${AMS_LOG_LEVEL}\033[0m"
+            echo -e "\033[1;36m[INFO] Log level is set to: ${AMS_LOG_LEVEL}\033[0m"
             ;;
         *)
             echo "Invalid log level '${LEVEL}'. Please use: HEAD, DEBUG, INFO, WARN, ERROR or SUCCESS."
@@ -36,6 +36,10 @@ log_warn() {
 
 log_error() {
     echo -e "\033[1;31m[ERROR] $@\033[0m"
+}
+
+log_assert() {
+    echo -e "\033[1;41m[ASSERT] $@\033[0m"
 }
 
 log_success() {
@@ -76,6 +80,10 @@ case "${AMS_LOG_SCOPE}" in
     error)
         shift
         log_error "$@"
+        ;;
+    assert)
+        shift
+        log_assert "$@"
         ;;
     success)
         shift

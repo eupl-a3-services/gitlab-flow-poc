@@ -10,7 +10,7 @@ set -e
 #AMS_DOMAIN=a3serices.dev
 
 ping_loop() {
-  local RETRIES=60
+  local RETRIES=20
   local SLEEP_TIME=5
 
   for ((i=1; i<=${RETRIES}; i++)); do
@@ -60,7 +60,7 @@ check_deployment() {
 
   RESPONSE_NAME=$(echo "${BODY}"          | grep -o '<text id="name"[^>]*>[^<]*'      | sed 's/.*>\([^<]*\).*/\1/')
   RESPONSE_DEPLOY=$(echo "${BODY}"        | grep -o '<text id="deploy"[^>]*>[^<]*'    | sed 's/.*>\([^<]*\).*/\1/')
-  RESPONSE_ENV=$(echo "${BODY}"           | grep -o '<text id="env"[^>]*>[^<]*'       | sed 's/.*>\([^<]*\).*/\1/')
+  RESPONSE_SPACE=$(echo "${BODY}"           | grep -o '<text id="space"[^>]*>[^<]*'       | sed 's/.*>\([^<]*\).*/\1/')
   RESPONSE_REVISION=$(echo "${BODY}"      | grep -o '<text id="revision"[^>]*>[^<]*'  | sed 's/.*>\([^<]*\).*/\1/')
 
   #RESPONSE_HUB_REVISION=$(echo "${BODY}"  | grep -o '<text id="hub"[^>]*>[^<]*'       | sed 's/.*>\([^<]*\).*/\1/')
@@ -73,7 +73,7 @@ check_deployment() {
   compare_values "AMS_REVISION"     "${AMS_REVISION}"     "${RESPONSE_REVISION}"
   compare_values "AMS_DEPLOY"       "${AMS_DEPLOY}"       "${RESPONSE_DEPLOY}"
   compare_values "AMS_RELEASE"      "${AMS_RELEASE}"      "${RESPONSE_RELEASE}"
-  compare_values "AMS_ENV"          "${AMS_ENV}"          "${RESPONSE_ENV}"
+  compare_values "AMS_SPACE"        "${AMS_SPACE}"        "${RESPONSE_SPACE}"
   echo "+-------------------+------------------------+------------------------+----------+"
   #compare_values "AHS_HUB_REVISION" "${AMS_HUB_REVISION}" "${RESPONSE_HUB_REVISION}"
   compare_values "AMS_BUILD"        "${AMS_BUILD}"        "${RESPONSE_BUILD}"
@@ -83,7 +83,7 @@ check_deployment() {
   if [[ "${RESPONSE_REVISION}" == "${AMS_REVISION}" && \
         "${RESPONSE_NAME}" == "${AMS_NAME}" && \
         "${RESPONSE_DEPLOY}" == "${AMS_DEPLOY}" && \
-        "${RESPONSE_ENV}" == "${AMS_ENV}" ]]; then
+        "${RESPONSE_SPACE}" == "${AMS_SPACE}" ]]; then
     log SUCCESS "Deployment successful."
     exit 0
   else

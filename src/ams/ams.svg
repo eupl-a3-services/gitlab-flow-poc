@@ -7,5 +7,5 @@
     <text id="revision" x="2" y="16">$${AMS_REVISION}</text>
     <text id="deploy" x="2" y="23.5">$${AMS_DEPLOY}</text>
     <text id="release" x="2" y="31">$${AMS_RELEASE}</text>
-    <text id="env" x="2" y="38.5">$${AMS_ENV}</text>
+    <text id="space" x="2" y="38.5">$${AMS_SPACE}</text>
 </svg>

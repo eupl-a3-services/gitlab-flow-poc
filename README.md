@@ -10,27 +10,53 @@ The pipeline uses the Docker image `a3services/hub-gitlab-flow:${AMS_REVISION}` 
 
 | env_variable               | flags   | value / description                            | usage in job  |
 |:---------------------------|:--------|:-----------------------------------------------|:--------------|
-| A3_REPO_GIT                | V/P/E/- | gitlab.com/<PROJECT_ROOT_GROUP>/support/a3.git | ----------    |
-| AMS_DOMAIN                 | V/P/-/- | <DOMAIN>.dev                                   | All (default) |
-| CI_HOME                    | V/P/E/- | /cache-volume/ci/${CI_PROJECT_PATH}            | ams-origin    |
-| ? CI_GROUP_ID              | V/-/E/- | 15786414                                       | All (default) |
-| ? CI_JOB_TOKEN_A3          | V/-/E/- | •••••                                          | All (default) |
-| ENV_HOME                   | V/-/E/- | /cache-volume/env                              | All (default) |
-| GIT_DEPTH                  | V/-/E/- | 1                                              | All (default) |
-| GIT_STRATEGY               | V/-/E/- | clone                                          | All (default) |
-| ? GLR_HOME                 | V/P/E/- | /cache-volume/glr                              | All (default) |
-| KUBECONFIG                 | F/P/E/- | •••••                                          | All (default) |
-| MVN_HOME                   | V/-/E/- | /cache-volume/mvn                              | All (default) |
-| NPM_HOME                   | V/-/E/- | /cache-volume/npm/${CI_PROJECT_PATH_SLUG}      | All (default) |
-| ? PACKAGE_REPO_READ_TOKEN  | V/-/E/M | •••••                                          | All (default) |
-| ? PORTAINER_HOST           | V/P/E/- | •••••                                          | All (default) |
-| ? PORTAINER_PASSWORD       | V/P/E/M | •••••                                          | All (default) |
-| ? PORTAINER_USER           | V/P/E/- | •••••                                          | All (default) |
-| ? RELEASE_DEFAUTL          | V/P/E/- | 0/default/develop                              | All (default) |
-| ? RELEASE_HOME             | V/P/E/- | /cache-volume/release/${CI_PROJECT_PATH_SLUG}  | All (default) |
-| ROLLOUT_DEFAULT            | V/P/E/- | 0/1.6.0/war-room                               | ams-origin    |
-| ROLLOUT_HOME               | V/-/E/- | /cache-volume/rolout/${CI_PROJECT_PATH}        | ams-origin    |
+| A3_REPO_GIT                | V/-/P/E | gitlab.com/<PROJECT_ROOT_GROUP>/support/a3.git | ----------    |
+| `AMS_DOMAIN`                 | V/-/P/- | <DOMAIN>.dev                                   | All (default) |*
+| `AMS_PARTITION` *            | V/-/P/- | zone \| shared \| service                      | All (default) |*
+| `CI_HOME`                    | V/V/P/E | /cache-volume/ci/${CI_PROJECT_PATH}            | ams-origin    |*
+| ? CI_GROUP_ID              | V/-/-/E | 15786414                                       | All (default) |
+| ? CI_JOB_TOKEN_A3          | V/-/-/E | •••••                                          | All (default) |
+| `ENV_HOME`                   | V/V/-/- | /cache-volume/env                              | All           |*
+| `GIT_DEPTH`                  | V/V/-/- | 1                                              | All           |*
+| `GIT_STRATEGY`               | V/V/-/- | clone                                          | All           |*
 
+| `GITLAB_REGISTRY_USER`       | V/V/P/- | •••••                                          | kube-deploy   |*
+| `GITLAB_REGISTRY_TOKEN`      | V/M/P/- | glpat-••••• [read_registry]                    | kube-deploy   |*
+
+| ? GLR_HOME                 | V/-/P/E | /cache-volume/glr                              | All (default) |
+| `KUBECONFIG`                 | F/V/P/- | •••••                                          | kube-deploy   |*
+| MVN_HOME                   | V/-/-/E | /cache-volume/mvn                              | All (default) |
+| NPM_HOME                   | V/-/-/E | /cache-volume/npm/${CI_PROJECT_PATH_SLUG}      | All (default) |
+| ? PACKAGE_REPO_READ_TOKEN  | V/-/-/E | •••••                                          | All (default) |
+| ? PORTAINER_HOST           | V/-/P/E | •••••                                          | All (default) |
+| ? PORTAINER_PASSWORD       | V/-/P/E | •••••                                          | All (default) |
+| ? PORTAINER_USER           | V/-/P/E | •••••                                          | All (default) |
+| ? RELEASE_DEFAUTL          | V/-/P/E | 0/default/develop                              | All (default) |
+| ? RELEASE_HOME             | V/-/P/E | /cache-volume/release/${CI_PROJECT_PATH_SLUG}  | All (default) |
+| `ROLLOUT_DEFAULT_ZONE`       | V/V/P/E | 1/0.1.0/init                                   | ams-origin    |*
+| `ROLLOUT_DEFAULT_SHARED`     | V/V/P/E | a/0.1.0/init                                   | ams-origin    |*
+| `ROLLOUT_DEFAULT_SERVICE`    | V/V/P/E | @/0.1.0/init                                   | ams-origin    |*
+| `ROLLOUT_HOME`               | V/V/-/E | /cache-volume/rolout/${CI_PROJECT_PATH}        | ams-origin    |*
+
+
+| Flag        | Value                      |
+|-------------|----------------------------|
+| `V\|F`      | **Type**                   |
+|             | `V` = Variable             |
+|             | `F` = File                 |
+| `V\|M\|H`   | **Visibility**             |
+|             | `V` = Visible              |
+|             | `M` = Masked               |
+|             | `H` = Hidden               |
+| `P\|-`      | **Protection**             |
+|             | `P` = Protected            |
+|             | `-` = Not protected        |
+| `E\|-`      | **Expansion**              |
+|             | `E` = Expand (variable value is expanded) |
+|             | `-` = No expansion         |
+| `*`         | **Optional**               |
+|             | Value is not required      |
+             
 
 ## Pipeline Stages
 The pipeline is divided into multiple stages:

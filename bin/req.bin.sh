@@ -30,7 +30,7 @@ _req() {
 
 if [[ $# -eq 0 ]]; then
     echo "Usage: $0 PARAM1 PARAM2 ..."
-    exit 1
+    exit 64
 fi
 
 _required 80 20 REQ

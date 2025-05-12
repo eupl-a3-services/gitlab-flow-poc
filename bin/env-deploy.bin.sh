@@ -28,8 +28,7 @@ argument_config() {
     done
 
     if [ "$__INSPECT" = true ]; then
-        PS4='\033[1G\033[K\033[1;36m$(date "+%y%m%d-%H%M%S")\033[0m \033[1;33m${BASH_SOURCE[0]}:${LINENO}\033[1;36m:\033[0m '
-        set -x
+        . setx INSPECT
     fi
 
     if [ "$__DEBUG" = true ]; then
@@ -38,6 +37,7 @@ argument_config() {
 }
 
 env_deploy() {
+    assert ENV ENV_HOME
     mkdir -p ${ENV_HOME}
     rm -rfv ${ENV_HOME}/*
     cp -r dist/* ${ENV_HOME}
@@ -49,5 +49,3 @@ ctx AMS_ORIGIN
 
 argument_config "$@"
 env_deploy
-
-ctx ENV

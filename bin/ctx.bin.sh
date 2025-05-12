@@ -14,7 +14,8 @@ ams_origin_ctx() {
     _ctx AMS_REVISION ${AMS_REVISION}
     _ctx AMS_DIST ${AMS_DIST}
     _ctx AMS_BUILD ${AMS_BUILD}
-    _ctx AMS_ZONE ${AMS_ZONE}
+    _ctx AMS_PARTITION ${AMS_PARTITION}
+    _ctx AMS_SEGMENT ${AMS_SEGMENT}
     _ctx AMS_RELEASE ${AMS_RELEASE}
     _ctx AMS_BUSINESS ${AMS_BUSINESS}
     _ctx AMS_ROLLOUT ${AMS_ROLLOUT}
@@ -25,13 +26,14 @@ ams_origin_ctx() {
 
 ams_container_ctx() {
     _context 80 20 AMS-CONTAINER-CTX
+    _ctx AMS_PARTITION ${AMS_PARTITION}
+    _ctx AMS_BUILD ${AMS_BUILD}
     _ctx AMS_NAME ${AMS_NAME}
     _ctx AMS_REVISION ${AMS_REVISION}
-    _ctx AMS_DIST ${AMS_DIST}
-    _ctx AMS_BUILD ${AMS_BUILD}
+#    _ctx AMS_DIST ${AMS_DIST}
     _ctx AMS_DEPLOY ${AMS_DEPLOY}
-    _ctx AMS_ENV ${AMS_ENV}
     _ctx AMS_RELEASE ${AMS_RELEASE}
+    _ctx AMS_SPACE ${AMS_SPACE}
     _ctx
     _ctx AMS ${AMS}
     _ctx
@@ -92,7 +94,7 @@ _ctx() {
 
 if [[ $# -eq 0 ]]; then
     log INFO "Usage: $0 {AHS_ORIGIN|AMS_ORIGIN|AMS_IMAGE|AMS_CONTAINER|AMS_PING}"
-    exit 1
+    exit 64
 fi
 
 case "$1" in

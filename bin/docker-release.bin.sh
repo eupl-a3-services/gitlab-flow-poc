@@ -30,8 +30,7 @@ argument_config() {
     done
 
     if [ "$__INSPECT" = true ]; then
-        PS4='\033[1G\033[K\033[1;36m$(date "+%y%m%d-%H%M%S")\033[0m \033[1;33m${BASH_SOURCE[0]}:${LINENO}\033[1;36m:\033[0m '
-        set -x
+        . setx INSPECT
     fi
 
     if [ "$__DEBUG" = true ]; then
@@ -58,8 +57,19 @@ release() {
     export AMS_IMAGE_REGISTRY=${CI_REGISTRY_IMAGE}/${AMS_NAME}:${AMS_REVISION}
     log DEBUG AMS_IMAGE_REGISTRY=${AMS_IMAGE_REGISTRY}
 
-    echo "${CI_REGISTRY_PASSWORD}" | docker login -u "${CI_REGISTRY_USER}" --password-stdin ${CI_REGISTRY}
+    echo "${CI_REGISTRY_PASSWORD}" | docker login -u "${CI_REGISTRY_USER}" --password-stdin ${CI_REGISTRY} 2>&1 \
+        | grep -v -e 'Your password will be stored unencrypted' \
+                  -e 'Configure a credential helper to remove this warning'
     
+    docker info > docker-info.yml
+    ansi-cat docker-info.yml
+
+    [ -d "${DOCKERFILE_DIR}" ] && cp "${DOCKERFILE_DIR}/Dockerfile" .
+
+    assert FILE Dockerfile
+
+    ansi-cat Dockerfile
+
     docker build -f Dockerfile \
     --build-arg "AMS=${AMS}" \
     --build-arg "AMS_NAME=${AMS_NAME}" \
