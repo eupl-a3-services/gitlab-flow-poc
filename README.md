@@ -12,7 +12,7 @@ The pipeline uses the Docker image `a3services/hub-gitlab-flow:${AMS_REVISION}` 
 |:---------------------------|:--------|:-----------------------------------------------|:--------------|
 | A3_REPO_GIT                | V/-/P/E | gitlab.com/<PROJECT_ROOT_GROUP>/support/a3.git | ----------    |
 | `AMS_DOMAIN`                 | V/-/P/- | <DOMAIN>.dev                                   | All (default) |*
-| `AMS_PARTITION` *            | V/-/P/- | zone \| shared \| service                      | All (default) |*
+| `AMS_PARTITION` *            | V/-/P/- | unit \| zone \| shared                      | All (default) |*
 | `CI_HOME`                    | V/V/P/E | /cache-volume/ci/${CI_PROJECT_PATH}            | ams-origin    |*
 | ? CI_GROUP_ID              | V/-/-/E | 15786414                                       | All (default) |
 | ? CI_JOB_TOKEN_A3          | V/-/-/E | •••••                                          | All (default) |
@@ -33,9 +33,9 @@ The pipeline uses the Docker image `a3services/hub-gitlab-flow:${AMS_REVISION}` 
 | ? PORTAINER_USER           | V/-/P/E | •••••                                          | All (default) |
 | ? RELEASE_DEFAUTL          | V/-/P/E | 0/default/develop                              | All (default) |
 | ? RELEASE_HOME             | V/-/P/E | /cache-volume/release/${CI_PROJECT_PATH_SLUG}  | All (default) |
-| `ROLLOUT_DEFAULT_ZONE`       | V/V/P/E | 1/0.1.0/init                                   | ams-origin    |*
-| `ROLLOUT_DEFAULT_SHARED`     | V/V/P/E | a/0.1.0/init                                   | ams-origin    |*
-| `ROLLOUT_DEFAULT_SERVICE`    | V/V/P/E | @/0.1.0/init                                   | ams-origin    |*
+| `ROLLOUT_DEFAULT`            | V/V/P/E | @/0.1.0/init                                   | ams-origin    |*
+| `ROLLOUT_DEFAULT`            | V/V/P/E | 1/0.1.0/init                                   | ams-origin    |*
+| `ROLLOUT_DEFAULT`            | V/V/P/E | a/0.1.0/init                                   | ams-origin    |*
 | `ROLLOUT_HOME`               | V/V/-/E | /cache-volume/rolout/${CI_PROJECT_PATH}        | ams-origin    |*
 
 

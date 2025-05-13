@@ -86,9 +86,7 @@ ams_rollout() {
             export AMS_BUSINESS="${BASH_REMATCH[3]}"
 
             if [[ "${AMS_SEGMENT}" == "@" ]]; then
-                export AMS_PARTITION="service"
-#            elif [[ "${AMS_SEGMENT}" == "-" ]]; then
-#                export AMS_PARTITION="core"
+                export AMS_PARTITION="unit"
             elif [[ "${AMS_SEGMENT}" =~ ^[0-9]+$ ]]; then
                 export AMS_PARTITION="zone"
             elif [[ "${AMS_SEGMENT}" =~ ^[a-z]$ ]]; then
@@ -136,16 +134,8 @@ env_files() {
     export AMS_RESOURCE=$(ams_resource)
 
     if [[ "${CI_COMMIT_BRANCH}" == "${CI_DEFAULT_BRANCH}" ]]; then
-        if [[ "${AMS_PARTITION}" == "service" ]]; then
-            assert ENV ROLLOUT_DEFAULT_SERVICE
-            export AMS_ROLLOUT="${ROLLOUT_DEFAULT_SERVICE}"
-        elif [[ "${AMS_PARTITION}" == "shared" ]]; then
-            assert ENV ROLLOUT_DEFAULT_SHARED
-            export AMS_ROLLOUT="${ROLLOUT_DEFAULT_SHARED}"
-        else
-            assert ENV ROLLOUT_DEFAULT_ZONE
-            export AMS_ROLLOUT="${ROLLOUT_DEFAULT_ZONE}"
-        fi
+        assert ENV ROLLOUT_DEFAULT
+        export AMS_ROLLOUT="${ROLLOUT_DEFAULT}"
     fi
 
     assert ENV ROLLOUT_HOME

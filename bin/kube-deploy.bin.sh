@@ -44,7 +44,7 @@ setup_env() {
     export AMS_ENV=${CI_ENVIRONMENT_NAME}
     export AMS_SPACE=${AMS_ENV}
 
-    if [ "$AMS_PARTITION" != "service" ]; then
+    if [ "$AMS_PARTITION" != "unit" ]; then
         if [[ -z ${AMS_SEGMENT} || ${AMS_SEGMENT} == no* ]]; then
             log ERROR "The value \"${AMS_SEGMENT}\" of AMS_SEGMENT is invalid. Please provide a valid segment."
             exit 1
@@ -66,14 +66,14 @@ setup_env() {
     export AMS_DEPLOY=$(date '+%y%m%d-%H%M%S')
 
     case "${AMS_PARTITION}" in
+        unit)
+            export AMS_AREA=""
+            ;;
         zone)
             export AMS_AREA="-${AMS_ENV}-${AMS_SEGMENT}"
             ;;
         shared)
             export AMS_AREA="-${AMS_SEGMENT}"
-            ;;
-        service)
-            export AMS_AREA=""
             ;;
 #        core)
 #            export AMS_AREA=""

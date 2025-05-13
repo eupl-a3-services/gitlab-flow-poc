@@ -26,7 +26,7 @@ RUN apk upgrade && \
     for BIN  in ./bin/*.bin.sh; do ln -s "$(pwd)/${BIN}" "/usr/local/bin/$(basename  "${BIN}" .bin.sh)"; done && \
     for DIST in ./dist/*;       do ln -s "$(pwd)/${DIST}" "/usr/local/bin/$(basename "${DIST}"       )"; done
 
-USER a3user
+#USER a3user
 
 LABEL org.opencontainers.image.title="hub-gitlab-flow"
 LABEL org.opencontainers.image.description="This Docker image simplifies and streamlines the process of building, packaging, and deploying applications stored in a GitLab repository. It supports AMS attributes setup, artifact building, Docker image packaging, image validation, and deployment to Kubernetes-based application servers. It is designed to enhance the software development lifecycle by improving automation and consistency across projects."
