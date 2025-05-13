@@ -20,7 +20,7 @@ assert() {
         GLOB)
             local FILES=( $VALUE )
             if [ ${#FILES[@]} -eq 0 ] || [ ! -e "${FILES[0]}" ]; then
-                log ASSERT "GLOB: No file matches pattern '$VALUE'!"
+                log ASSERT "GLOB: No file matches pattern '${VALUE//\\}'!"
                 exit 1
             fi
             ;;

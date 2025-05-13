@@ -61,6 +61,8 @@ setup_env() {
         fi
         set -o allexport
         source ${ENV_HOME}/${AMS_SPACE}.env
+        
+        ctx ENV
     fi
 
     export AMS_DEPLOY=$(date '+%y%m%d-%H%M%S')
@@ -75,9 +77,6 @@ setup_env() {
         shared)
             export AMS_AREA="-${AMS_SEGMENT}"
             ;;
-#        core)
-#            export AMS_AREA=""
-#            ;;
         *)
             export AMS_AREA="-no-area"
             ;;
@@ -94,8 +93,6 @@ kube_info() {
     kubectl get namespaces
     log INFO "get nodes -o wide"
     kubectl get nodes -o wide
-    # kubectl api-resources -o wide
-    # kubectl get crd
 }
 
 process_kube_compose() {
@@ -107,9 +104,12 @@ process_kube_compose() {
     
     DIR=$(pwd)
 
-    [ -d .kube ] && cp -r .kube/* .
+    [ -d .kube ] && {
+        log INFO "Using configuration from .kube directory – copying files to current directory"
+        cp -r .kube/* .
+    }
 
-    assert GLOB '$'${KUBE_COMPOSE_NAME}*.${KUBE_COMPOSE_EXT}
+    assert GLOB '\$'${KUBE_COMPOSE_NAME}*.${KUBE_COMPOSE_EXT}
 
     > ${KUBE_COMPOSE_NAME}.${KUBE_COMPOSE_EXT}
 
@@ -118,12 +118,6 @@ process_kube_compose() {
             if [[ "$line" == !* ]]; then
                 COMMAND="$(echo "${line:2}" | tr -d '\n' | tr -d '\r' | xargs)"
                 eval "$COMMAND"
-
-                #log INFO AMS_NAME=${AMS_NAME}
-                #if [[ -n "${AMS_NAME}" ]]; then
-                #    log INFO add 
-                #    AMS_NAMES_LOCAL+=("${AMS_NAME}")
-                #fi
             fi
         done < <(grep '^!' "$file")
 
@@ -219,7 +213,7 @@ kube_deploy() {
         log INFO "DEPLOYMENT: $deployment"
         if echo "$output" | grep -q "deployment.apps/$deployment.*changed"; then
             log INFO "Rollout restart for $deployment"
-            run_kubectl rollout restart deployment $deployment -n env-${AMS_ENV}
+            run_kubectl rollout restart deployment $deployment -n "${KUBE_NAMESPACE}"
         else
             log INFO "No change for $deployment, skipping rollout"
         fi
