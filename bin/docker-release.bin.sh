@@ -64,9 +64,9 @@ release() {
     docker info > docker-info.yml
     ansi-cat docker-info.yml
 
-    [ -d "${DOCKERFILE_DIR}" ] && cp "${DOCKERFILE_DIR}/Dockerfile" .
+    assert FILE ./.docker/${AMS_NAME}/Dockerfile
 
-    assert FILE Dockerfile
+    cp ./.docker/${AMS_NAME}/Dockerfile .
 
     ansi-cat Dockerfile
 

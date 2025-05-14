@@ -37,3 +37,13 @@ check_interval = 0
 
 sed -i '1s/.*/concurrent = 10/' /etc/gitlab-runner/config.toml
 ```
+
+## Useges
+```
+docker system df
+```
+
+## Cleanup
+```
+docker system prune -a --volumes -f
+```
