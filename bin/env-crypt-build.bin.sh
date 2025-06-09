@@ -22,7 +22,9 @@ argument_config() {
         case $1 in
             --inspect) __INSPECT=true ;;
             --debug) __DEBUG=true ;;
-            *) log ERROR "Unknown parameter: $1" ;;
+            *)
+                log ERROR "Unexpected positional argument: $1"
+                ;;
         esac
         shift
     done
@@ -36,7 +38,30 @@ argument_config() {
     fi
 }
 
-env_build() {
+env_crypt_build() {
+    assert ENV PDS_TOKEN
+    assert FILE /cache-volume/session-vault/ci-private.key-session-vault
+    if ! unzip -p -P "${PDS_TOKEN}" /cache-volume/session-vault/ci-private.key-session-vault > /tmp/private.key; then
+        log ERROR "Environment variable 'pds-token' is invalid. Aborting pipeline execution."
+        exit 1
+    fi
+
+    ansi-cmd gpg --batch --import /tmp/private.key
+    ansi-cmd gpg --list-secret-keys
+
+    #git-crypt status
+    #cat .gpg.env
+    git-crypt unlock
+
+    #git-crypt status
+    ansi-cat .gpg.env
+    if grep -q "GITCRYPT" .gpg.env; then
+        log ERROR "Repo is still locked"
+        exit 2
+    else
+        log INFO "Repo is successfully unlocked"
+    fi
+
     mkdir -p dist
     export ENV_REVISION=${AMS_REVISION}
     export ENV_BUILD=${AMS_BUILD}
@@ -48,6 +73,6 @@ ctx AHS_ORIGIN
 ctx AMS_ORIGIN
 
 argument_config "$@"
-env_build
+env_crypt_build
 
 ctx ENV

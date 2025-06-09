@@ -22,7 +22,9 @@ argument_config() {
         case $1 in
             --inspect) __INSPECT=true ;;
             --debug) __DEBUG=true ;;
-            *) log ERROR "Unknown parameter: $1" ;;
+            *)
+                log ERROR "Unexpected positional argument: $1"
+                ;;
         esac
         shift
     done
@@ -36,18 +38,22 @@ argument_config() {
     fi
 }
 
-env_build() {
-    mkdir -p dist
-    export ENV_REVISION=${AMS_REVISION}
-    export ENV_BUILD=${AMS_BUILD}
-    ENV_HEAD=`echo -e "AHS_REVISION=${AHS_REVISION}\nAHS_BUILD=${AHS_BUILD}\nENV_REVISION=${ENV_REVISION}\nENV_BUILD=${ENV_BUILD}\n"`
-    (cd src && for FILE in *.env; do echo "${ENV_HEAD}" > ../dist/${FILE} && echo >> ../dist/${FILE} && cat ${FILE} >> ../dist/${FILE}; done)
+env_crypt_deploy() {
+    assert ENV PDS_TOKEN
+    find dist/ -type f -name '*.env' | while read FILE_PATH; do 
+        FILE_NAME=$(basename "${FILE_PATH}")
+        FILE_BASE="${FILE_NAME%.*}"
+        SESSION_REQUEST_NAME="${FILE_BASE//./-}.env-session-request"
+        SESSION_REQUEST_FILE="/cache-volume/session-request/${SESSION_REQUEST_NAME}"
+
+        rm -f "${SESSION_REQUEST_FILE}"
+
+        zip -j -P "${PDS_TOKEN}" "${SESSION_REQUEST_FILE}" "${FILE_PATH}"
+    done
 }
 
 ctx AHS_ORIGIN
 ctx AMS_ORIGIN
 
 argument_config "$@"
-env_build
-
-ctx ENV
+env_crypt_deploy

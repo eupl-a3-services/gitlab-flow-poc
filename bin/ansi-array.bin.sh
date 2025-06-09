@@ -1,9 +1,12 @@
+#!/bin/bash
+
 ansi_array() {
-    local -n input_array=$1
     local array_name="$1"
+    local left_text="$1"
+    local -n input_array=$1
 
     local total_width=120
-    local header_color="\033[42;97m"
+    local background_color="\033[42;97m"
     local reset_color="\033[0m"
 
     local -a seen=()
@@ -22,12 +25,10 @@ ansi_array() {
     done
 
     local unique=${#seen_once[@]}
-    local header_left="Array: \`${array_name}\`"
-    local footer_right="Total: $total | Unique: $unique | Duplicates: $duplicates"
-    local padding_header=$((total_width - ${#header_left}))
-    local padding_footer=$((total_width - 1 - ${#header_left} - ${#footer_right}))
 
-    printf "${header_color} %s%*s${reset_color}\n" "$header_left" "$padding_header" ""
+    local right_text="total: $total | unique: $unique | duplicates: $duplicates"
+
+    ansi-bar ARRAY "${left_text}"
 
     seen_once=()
     for item in "${input_array[@]}"; do
@@ -39,7 +40,7 @@ ansi_array() {
         fi
     done
 
-    printf "${header_color} %s%*s%s ${reset_color}\n" "$header_left" "$padding_footer" "" "$footer_right"
+    ansi-bar ARRAY "${left_text}" "${right_text}"
 }
 
 ansi_array "$@"

@@ -14,7 +14,7 @@ WORKDIR /opt/${AMS_NAME}
 COPY opt/ .
 
 RUN apk upgrade && \
-    apk --no-cache add bash curl jq docker-cli tzdata git kubectl envsubst yq highlight openjdk11-jre && \
+    apk --no-cache add bash curl jq docker-cli tzdata git kubectl envsubst yq highlight openjdk11-jre xz git-crypt gnupg unzip zip mc && \
     mkdir -p /usr/local/lib/docker/cli-plugins/ && \
     curl -L https://github.com/docker/buildx/releases/download/v0.22.0/buildx-v0.22.0.linux-amd64 -o /usr/local/lib/docker/cli-plugins/docker-buildx && \
     chmod +x /usr/local/lib/docker/cli-plugins/docker-buildx && \

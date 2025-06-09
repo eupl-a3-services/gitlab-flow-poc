@@ -11,29 +11,34 @@ assert() {
                 exit 1
             fi
             ;;
+        DIR)
+            if [ ! -d "$VALUE" ]; then
+                log ASSERT "DIR: Directory '$VALUE' does not exist!"
+                exit 2
+            fi
+            ;;
         FILE)
             if [ ! -f "$VALUE" ]; then
                 log ASSERT "FILE: File '$VALUE' does not exist!"
-                exit 1
+                exit 3
             fi
             ;;
         GLOB)
             local FILES=( $VALUE )
             if [ ${#FILES[@]} -eq 0 ] || [ ! -e "${FILES[0]}" ]; then
                 log ASSERT "GLOB: No file matches pattern '${VALUE//\\}'!"
-                exit 1
+                exit 4
             fi
             ;;
         *)
-            log ERROR "Unknown assert type: '$TYPE'. Use 'ENV', 'FILE', or 'GLOB'."
+            log ERROR "Unknown assert type: '$TYPE'. Use {ENV|DIR|FILE|GLOB}."
             exit 64
             ;;
     esac
 }
 
-# Usage check
 if [[ $# -ne 2 ]]; then
-    echo "Usage: $0 {ENV|FILE|GLOB} VALUE"
+    log USAGE "$0 {ENV|DIR|FILE|GLOB} VALUE"
     exit 64
 fi
 

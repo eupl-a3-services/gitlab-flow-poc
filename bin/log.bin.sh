@@ -46,6 +46,10 @@ log_success() {
     echo -e "\033[1;32m[SUCCESS] $@\033[0m"
 }
 
+log_usage() {
+    echo -e "\033[1;36m[USAGE] $@\033[0m"
+}
+
 log_value() {
     local LOG_KEY=$1
     printf -v LOG_KEY "%-25s" "${LOG_KEY}:"
@@ -88,6 +92,10 @@ case "${AMS_LOG_SCOPE}" in
     success)
         shift
         log_success "$@"
+        ;;
+    usage)
+        shift
+        log_usage "$@"
         ;;
     value)
         shift

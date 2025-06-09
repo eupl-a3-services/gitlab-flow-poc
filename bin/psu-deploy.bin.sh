@@ -95,7 +95,7 @@ ctx AMS_ORIGIN
 argument_config "$@"
 setup_env
 
-ctx AMS_CONTAINER
+ctx AMS_DEPLOY
 
 process_docker_compose
 portainer_deploy
