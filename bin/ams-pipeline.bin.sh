@@ -49,4 +49,4 @@ ctx AHS_ORIGIN
 argument_config "$@"
 check_pipeline_source
 
-ctx AMS_ORIGIN
+ctx AMS_PIPELINE

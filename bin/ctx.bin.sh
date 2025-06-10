@@ -25,6 +25,24 @@ ams_origin_ctx() {
     _ctx
 }
 
+ams_pipeline_ctx() {
+    _context 80 20 AMS-PIPELINE-CTX
+    _ctx AMS_NAME ${AMS_NAME}
+    _ctx AMS_REVISION ${AMS_REVISION}
+    _ctx AMS_DIST ${AMS_DIST}
+    _ctx AMS_BUILD ${AMS_BUILD}
+    _ctx AMS_PARTITION ${AMS_PARTITION}
+    _ctx AMS_SEGMENT ${AMS_SEGMENT}
+    _ctx AMS_RELEASE ${AMS_RELEASE}
+    _ctx AMS_BUSINESS ${AMS_BUSINESS}
+    _ctx AMS_ROLLOUT ${AMS_ROLLOUT}
+    _ctx AMS_TRIGGER ${AMS_TRIGGER}
+    _ctx AMS_TRIGGER_JOB ${AMS_TRIGGER_JOB}
+    _ctx AMS_RESOURCE ${AMS_RESOURCE}
+    _ctx AMS_REGISTRY ${AMS_REGISTRY}
+    _ctx
+}
+
 ams_deploy_ctx() {
     _context 80 20 AMS-DEPLOY-CTX
     _ctx AMS_NAME ${AMS_NAME}
@@ -107,6 +125,9 @@ case "$1" in
         ;;
     AMS_ORIGIN)
         ams_origin_ctx
+        ;;
+    AMS_PIPELINE)
+        ams_pipeline_ctx
         ;;
     AMS_IMAGE)
         ams_image_ctx

@@ -53,7 +53,8 @@ argument_config() {
 
 setup_space() {
     if [ "$AMS_PARTITION" == "downstream" ]; then
-        assert ENV AMS_SPACE
+        assert ENV AMS_TRIGGER_JOB
+        export AMS_SPACE="${AMS_TRIGGER_JOB##*:}"
     else
         export AMS_SPACE="${CI_JOB_NAME##*:}"
     fi
