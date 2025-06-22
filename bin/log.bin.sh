@@ -1,13 +1,13 @@
 #!/bin/bash
 
-: "${AMS_LOG_LEVEL:=INFO}"
+: "${GLF_LOG_LEVEL:=INFO}"
 
 log_level() {
     local LEVEL="${1^^}"
     case "${LEVEL}" in
         HEAD|DEBUG|INFO|WARN|ERROR|SUCCESS)
-            export AMS_LOG_LEVEL="${LEVEL}"
-            echo -e "\033[1;36m[INFO] Log level is set to: ${AMS_LOG_LEVEL}\033[0m"
+            export GLF_LOG_LEVEL="${LEVEL}"
+            echo -e "\033[1;36m[INFO] Log level is set to: ${GLF_LOG_LEVEL}\033[0m"
             ;;
         *)
             echo "Invalid log level '${LEVEL}'. Please use: HEAD, DEBUG, INFO, WARN, ERROR or SUCCESS."
@@ -19,13 +19,13 @@ log_head() {
 }
 
 log_debug() {
-    if [ "${AMS_LOG_LEVEL}" = "DEBUG" ]; then
+    if [ "${GLF_LOG_LEVEL}" = "DEBUG" ]; then
         echo -e "\033[1;34m[DEBUG] $@\033[0m"
     fi
 }
 
 log_info() {
-    if [ "${AMS_LOG_LEVEL}" = "INFO" ] || [ "${AMS_LOG_LEVEL}" = "DEBUG" ]; then
+    if [ "${GLF_LOG_LEVEL}" = "INFO" ] || [ "${GLF_LOG_LEVEL}" = "DEBUG" ]; then
         echo -e "\033[1;36m[INFO] $@\033[0m"
     fi
 }
@@ -58,9 +58,9 @@ log_value() {
     echo -e "\033[1;34m[VALUE] ${LOG_KEY} '\033[0m${LOG_VALUE}\033[1;34m'\033[0m"
 }
 
-AMS_LOG_SCOPE="${1,,}"
+GLF_LOG_SCOPE="${1,,}"
 
-case "${AMS_LOG_SCOPE}" in
+case "${GLF_LOG_SCOPE}" in
     level)
         shift
         log_level "$@"

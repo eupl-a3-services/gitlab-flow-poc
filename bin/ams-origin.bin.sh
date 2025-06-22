@@ -2,13 +2,13 @@
 
 set -e
 
-log INFO "AMS_LOG: '${AMS_LOG}'. Options: [INSPECT, DEBUG]"
+log INFO "GLF_LOG: '${GLF_LOG}'. Options: [INSPECT, DEBUG]"
 
 argument_config() {
     __INSPECT=false
     __DEBUG=false
 
-    case "${AMS_LOG}" in
+    case "${GLF_LOG}" in
         inspect|INSPECT)
             __INSPECT=true
             __DEBUG=true
@@ -107,7 +107,7 @@ env_files() {
 
     log DEBUG "Exporting environment variables to ${ORIGIN_ENV}"
     env | sort > ${ORIGIN_ENV}
-    if [ "${AMS_LOG_LEVEL}" = "DEBUG" ]; then
+    if [ "${GLF_LOG_LEVEL}" = "DEBUG" ]; then
         cat ${ORIGIN_ENV}
     fi
 
@@ -115,7 +115,7 @@ env_files() {
         export AMS_REVISION="$CI_COMMIT_TAG"
     elif [ -d .git ]; then
         git config --global --add safe.directory ${PWD}
-        if [ "${AMS_LOG_LEVEL}" = "DEBUG" ]; then
+        if [ "${GLF_LOG_LEVEL}" = "DEBUG" ]; then
             git fetch --unshallow || git fetch
         else
             git fetch --unshallow > /dev/null 2>&1 || git fetch > /dev/null 2>&1
@@ -139,9 +139,9 @@ env_files() {
         export AMS_ROLLOUT="${ROLLOUT_DEFAULT}"
     fi
 
-    assert ENV ROLLOUT_HOME
+    #assert ENV ROLLOUT_HOME
 
-    SHA_ROLLOUT=${ROLLOUT_HOME}/${CI_COMMIT_SHA}
+    SHA_ROLLOUT=${ROLLOUT_HOME}/${CI_PROJECT_PATH}/${CI_COMMIT_SHA}
 
     if [ -z "${AMS_ROLLOUT}" ]; then
         if [ -f "${SHA_ROLLOUT}" ]; then
@@ -154,7 +154,7 @@ env_files() {
         fi
     else
         mkdir -p "$(dirname "${SHA_ROLLOUT}")"
-        ROLLOUT_REMOVED_FILES_COUNT=$(find "${ROLLOUT_HOME}" -type f -mtime +7 -exec rm -f {} \; -print | wc -l)
+        ROLLOUT_REMOVED_FILES_COUNT=$(find "$(dirname "$SHA_ROLLOUT")" -type f -mtime +7 -exec rm -f {} \; -print | wc -l)
         log INFO "Old rollout files older than 7 days have been removed. Total removed files: ${ROLLOUT_REMOVED_FILES_COUNT}"
 
         echo "$AMS_ROLLOUT" > "${SHA_ROLLOUT}"
@@ -191,10 +191,11 @@ EOF
 store_ci() {
     log INFO "Storing CI ..."
     if [ -n "$CI_COMMIT_BRANCH" ] && [ "${CI_COMMIT_REF_PROTECTED}" == "true" ]; then
-        assert ENV CI_HOME
-        mkdir -p "${CI_HOME}/${CI_COMMIT_BRANCH}"
-        cat .gitlab-ci.yml > "${CI_HOME}/${CI_COMMIT_BRANCH}/.gitlab-ci.yml"
-        log INFO "CI file [${CI_HOME}/${CI_COMMIT_BRANCH}/.gitlab-ci.yml] have been created"
+        # assert ENV CI_HOME
+        CI_FILE_PATH="${CI_HOME}/${CI_PROJECT_PATH}/${CI_COMMIT_BRANCH}/.gitlab-ci.yml"
+        mkdir -p "$(dirname "$CI_FILE_PATH")"
+        cat .gitlab-ci.yml > "$CI_FILE_PATH"
+        log INFO "CI file [$CI_FILE_PATH] has been created"
     else
         if [ -z "$CI_COMMIT_BRANCH" ]; then
             log WARN "CI_COMMIT_BRANCH is not defined. CI file was not created."

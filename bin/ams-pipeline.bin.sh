@@ -2,13 +2,13 @@
 
 set -e
 
-log INFO "AMS_LOG: '${AMS_LOG}'. Options: [INSPECT, DEBUG]"
+log INFO "GLF_LOG: '${GLF_LOG}'. Options: [INSPECT, DEBUG]"
 
 argument_config() {
     __INSPECT=false
     __DEBUG=false
 
-    case "${AMS_LOG}" in
+    case "${GLF_LOG}" in
         inspect|INSPECT)
             __INSPECT=true
             __DEBUG=true

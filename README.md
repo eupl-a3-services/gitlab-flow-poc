@@ -13,10 +13,8 @@ The pipeline uses the Docker image `a3services/hub-gitlab-flow:${AMS_REVISION}` 
 | A3_REPO_GIT                | V/-/P/E | gitlab.com/<PROJECT_ROOT_GROUP>/support/a3.git | ----------    |
 | `AMS_DOMAIN`                 | V/-/P/- | <DOMAIN>.dev                                   | All (default) |*
 | ---- `AMS_PARTITION` *            | V/-/P/- | unit \| zone \| shared                      | All (default) |*
-| `CI_HOME`                    | V/V/P/E | /cache-volume/ci/${CI_PROJECT_PATH}            | ams-origin    |*
 | ? CI_GROUP_ID              | V/-/-/E | 15786414                                       | All (default) |
 | ? CI_JOB_TOKEN_A3          | V/-/-/E | •••••                                          | All (default) |
-| `ENV_HOME`                   | V/V/-/- | /cache-volume/env                              | All           |*
 | `GIT_DEPTH`                  | V/V/-/- | 1                                              | All           |*
 | `GIT_STRATEGY`               | V/V/-/- | clone                                          | All           |*
 
@@ -35,7 +33,6 @@ The pipeline uses the Docker image `a3services/hub-gitlab-flow:${AMS_REVISION}` 
 | ? RELEASE_HOME             | V/-/P/E | /cache-volume/release/${CI_PROJECT_PATH_SLUG}  | All (default) |
 | `ROLLOUT_DEFAULT`            | V/V/-/- | @/0.1.0/init \| 1/0.1.0/init \| a/0.1.0/init   | ams-origin    |*
 | `ROLLOUT_RELEASE`            | V/V/P/- | @/${ROLLOUT_RELEASE}/init \| 1/0.1.0/init \| a/0.1.0/init   | ams-origin    |*
-| `ROLLOUT_HOME`               | V/V/-/E | /cache-volume/rolout/${CI_PROJECT_PATH}        | ams-origin    |*
 
 
 | Flag        | Value                      |

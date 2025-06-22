@@ -2,7 +2,7 @@
 
 set -e
 
-log INFO "AMS_LOG: '${AMS_LOG}'. Options: [INSPECT, DEBUG]"
+log INFO "GLF_LOG: '${GLF_LOG}'. Options: [INSPECT, DEBUG]"
 
 argument_config() {
     __INSPECT=false
@@ -12,7 +12,7 @@ argument_config() {
     __DOWNSTREAM=false
     __HIDE_ENV_VALUES=false
 
-    case "${AMS_LOG}" in
+    case "${GLF_LOG}" in
         inspect|INSPECT)
             __INSPECT=true
             __DEBUG=true
@@ -51,7 +51,7 @@ argument_config() {
     fi    
 }
 
-setup_space() {
+space_setup() {
     if [ "$AMS_PARTITION" == "downstream" ]; then
         assert ENV AMS_TRIGGER_JOB
         export AMS_SPACE="${AMS_TRIGGER_JOB##*:}"
@@ -83,7 +83,8 @@ setup_space() {
     export KUBE_COMPOSE_EXT=yml
 }
 
-apply_env() {
+env_setup() {
+    log INFO ENV: setup
     if [ "$AMS_PARTITION" != "unit" ] && [ "$AMS_PARTITION" != "downstream" ]; then
         #if [[ -z ${AMS_SEGMENT} || ${AMS_SEGMENT} == no* ]]; then
         #    log ERROR "The value \"${AMS_SEGMENT}\" of AMS_SEGMENT is invalid. Please provide a valid segment."
@@ -93,7 +94,7 @@ apply_env() {
             log ERROR "Configuration file \"${ENV_HOME}/${AMS_SPACE}.env\" not found. The space \"${AMS_SPACE}\" is not properly configured."
             exit 2
         fi
-        log INFO ${ENV_HOME}/${AMS_SPACE}.env
+        log INFO ENV: ${ENV_HOME}/${AMS_SPACE}.env
         if [ "$__DEBUG" = true ]; then
             ansi-cat ${ENV_HOME}/${AMS_SPACE}.env
         fi
@@ -120,13 +121,36 @@ apply_env() {
 
 }
 
+kubeconfig_setup() {
+    log INFO KUBECONFIG: setup
+    current_dir="${KUBECONFIG_HOME}/${CI_PROJECT_PATH}/${AMS_SPACE}"
+
+    while true; do
+        log DEBUG KUBECONFIG: check ${current_dir}
+        found_file=$(find "$current_dir" -maxdepth 1 -type f -name "*.kubeconfig.yml" 2>/dev/null | head -n 1 || true)
+
+        if [[ -n "${found_file}" ]]; then
+            log INFO KUBECONFIG: ${found_file}
+            export KUBECONFIG="${found_file}"
+            return 0
+        fi
+
+        if [[ "${current_dir}" == "$KUBECONFIG_HOME" ]]; then
+            log ERROR "No *.kubeconfig.yml file found in any parent directory from ${KUBECONFIG_HOME}/${CI_PROJECT_PATH}/${AMS_SPACE} upwards."
+            return 1
+        fi
+
+        current_dir=$(dirname "${current_dir}")
+    done
+}
+
 kube_info() {
     ansi-cmd kubectl config get-contexts
     ansi-cmd kubectl get nodes
     ansi-cmd kubectl get namespaces
 }
 
-process_kube_compose() {
+kube_compose() {
     PROCESSED=-processed
     AMS_NAMES_LOCAL=()
 
@@ -244,7 +268,7 @@ kube_deploy() {
 
 ams_ping() {
     if [ "$__NOPING" = false ]; then
-        assert ENV AMS_DOMAIN
+        # assert ENV AMS_DOMAIN
         . ansi-array AMS_NAMES
         for name in "${AMS_NAMES[@]}"; do
             export AMS_NAME="$name"
@@ -264,13 +288,16 @@ ctx AMS_ORIGIN
 
 argument_config "$@"
 
-setup_space
+space_setup
 
 ctx AMS_DEPLOY
 
-apply_env
+env_setup
+
+kubeconfig_setup
 
 kube_info
-process_kube_compose
+kube_compose
 kube_deploy
+
 ams_ping

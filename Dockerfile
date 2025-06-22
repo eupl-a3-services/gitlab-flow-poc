@@ -7,7 +7,17 @@ ENV AMS=${AMS} \
     AHS_REVISION=${AMS_REVISION} \
     AHS_BUILD=${AMS_BUILD} \
     TZ=Europe/Bratislava \
-    DOCKER_BUILDKIT=1
+    PS1="\[\e[1;35m\]\u\[\e[1;34m\]@\[\e[1;32m\]\${AHS_NAME}\[\e[1;34m\]:\[\e[1;33m\]\${AHS_REVISION}\[\e[1;34m\]:\[\e[1;36m\]\w \[\e[1;35m\]\\$\[\e[0m\] " \
+    SHELL=/bin/bash \
+    TERM=xterm \
+    DOCKER_BUILDKIT=1\
+    PATH="/opt/gitlab-flow/bin:${PATH}"\
+    GLF_VERSION="/cache-volume/.glf.version"\
+    ROLLOUT_HOME=/cache-volume/rolout\
+    KUBECONFIG_HOME=/cache-volume/kubeconfig\
+    ENV_HOME=/cache-volume/env\
+    CI_HOME=/cache-volume/ci
+
 
 WORKDIR /opt/${AMS_NAME}
 
@@ -21,10 +31,14 @@ RUN apk upgrade && \
     adduser -D a3user && \
     addgroup -g 114 docker && \
     addgroup a3user docker && \
-    chmod 775 ./bin/* && \
-    chmod 775 ./dist/* && \
-    for BIN  in ./bin/*.bin.sh; do ln -s "$(pwd)/${BIN}" "/usr/local/bin/$(basename  "${BIN}" .bin.sh)"; done && \
-    for DIST in ./dist/*;       do ln -s "$(pwd)/${DIST}" "/usr/local/bin/$(basename "${DIST}"       )"; done
+    chmod +x ./bin/* && \
+    for file in ./bin/*.bin.sh; do mv "$file" "${file%.bin.sh}"; done
+
+    #    chmod 775 ./dist/* && \
+    #echo 'export PATH="/opt/gitlab-flow:$PATH"' >> /etc/profile.d/gitlab-flow.sh && \
+    #chmod +x /etc/profile.d/gitlab-flow.sh
+    #for BIN  in ./bin/*.bin.sh; do ln -s "$(pwd)/${BIN}" "/usr/local/bin/$(basename  "${BIN}" .bin.sh)"; done && \
+    #for DIST in ./dist/*;       do ln -s "$(pwd)/${DIST}" "/usr/local/bin/$(basename "${DIST}"       )"; done
 
 #USER a3user
 

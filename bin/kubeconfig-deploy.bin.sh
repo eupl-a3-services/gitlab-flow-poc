@@ -38,29 +38,18 @@ argument_config() {
     fi
 }
 
-env_deploy() {
-    # assert ENV ENV_HOME
-    log INFO "Deploying plain .env files to '${ENV_HOME}'"
-    mkdir -p "${ENV_HOME}"
-    rm -rf "${ENV_HOME:?}/"*
-    cp -r dist/* "${ENV_HOME}/"
-    ansi-cmd tree ${ENV_HOME}
-    #ls -laR "${ENV_HOME}"
+kubeconfig_deploy() {
+    # assert ENV KUBECONFIG_HOME
+    log INFO "Deploying plain '.kubeconfig.yml' files to '${KUBECONFIG_HOME}"
+    mkdir -p "${KUBECONFIG_HOME}"
+    rm -rf "${KUBECONFIG_HOME:?}/"*
+    cp -r dist/* "${KUBECONFIG_HOME}/"
+    ansi-cmd tree ${KUBECONFIG_HOME}
+    #ls -laR "${KUBECONFIG_HOME}"
 }
 
-env_deploy_crypt() {
-    log INFO "Encrypting .env files to session-request directory..."
-    assert ENV PDS_TOKEN
-    find dist/ -type f -name '*.env' | while read -r FILE_PATH; do 
-        FILE_NAME=$(basename "${FILE_PATH}")
-        FILE_BASE="${FILE_NAME%.*}"
-        SESSION_REQUEST_NAME="${FILE_BASE//./-}.env-session-request"
-        SESSION_REQUEST_FILE="/cache-volume/session-request/${SESSION_REQUEST_NAME}"
-
-        rm -f "${SESSION_REQUEST_FILE}"
-
-        zip -j -P "${PDS_TOKEN}" "${SESSION_REQUEST_FILE}" "${FILE_PATH}"
-    done
+kubeconfig_deploy_crypt() {
+    exit 1
 }
 
 ctx AHS_ORIGIN
@@ -69,7 +58,7 @@ ctx AMS_ORIGIN
 argument_config "$@"
 
 if [ "$__CRYPT" = true ]; then
-    env_deploy_crypt
+    kubeconfig_deploy_crypt
 else
-    env_deploy
+    kubeconfig_deploy
 fi

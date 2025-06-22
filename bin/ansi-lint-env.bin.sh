@@ -60,7 +60,11 @@ ansi_lint_env() {
         DISPLAY_VALUE="$VALUE"
       fi
 
-      printf "\033[0;32m%-50s\033[0m%s\n" "$VAR" "$DISPLAY_VALUE"
+      if [ -z "$VALUE" ]; then
+        printf "\033[0;33m%-50s\033[0m%s\n" "$VAR" "«empty»"
+      else
+        printf "\033[0;32m%-50s\033[0m%s\n" "$VAR" "$DISPLAY_VALUE"
+      fi
     else
       printf "\033[0;31m%s\033[0m\n" "$VAR"
       MISSING_COUNT=$((MISSING_COUNT + 1))

@@ -4,7 +4,7 @@ categories: tools
 repo: hub
 app_param:
 run_pds: docker run --rm a3services/hub-gitlab-flow:${AMS_REVISION} install-pds \| bash
-run_mc: docker run -it --rm -e TERM=xterm a3services/hub-gitlab-flow:${AMS_REVISION} mc
+run_mc: docker run -it --rm a3services/hub-gitlab-flow:${AMS_REVISION} mc
 ---
 
 # GitLab Flow for Docker Image Building & Deployment
