@@ -39,39 +39,31 @@ argument_config() {
 }
 
 kubeconfig_build() {
-    SRC_DIR="src"
-    DIST_DIR="dist"
-    KUBECONFIG_DIR="${SRC_DIR}/.kubeconfig"
+    SRC_DIR=src
+    DIST_DIR=dist
 
-    rm -rf "${DIST_DIR}"
+    rm -rf "${DIST_DIR:?}"/*
     mkdir -p "${DIST_DIR}"
 
-    find "${SRC_DIR}" -mindepth 1 -not -path "${SRC_DIR}/.kubeconfig*" | while read -r path; do
-        relative_path="${path#${SRC_DIR}/}"
-        target_path="${DIST_DIR}/${relative_path}"
+    yq eval -o=json '.. | select(tag == "!!str") | {"path": path | join("/"), "value": .}' ${SRC_DIR}/kubeconfig.yml | \
+    jq -r '"\(.path): \(.value)"' | \
+    while IFS= read -r record; do
+        dir="${record%%:*}"
+        file="${record#*: }"
 
-        if [ -d "${path}" ]; then
-            mkdir -p "${target_path}"
+        if [[ "$dir" == *"/_file" ]]; then
+            dir="${dir%/_file}"
+        fi
+
+        mkdir -p ${DIST_DIR}/${dir}
+        source_path="${SRC_DIR}/.kubeconfig/${file}"
+
+        if [[ ! -f "$source_path" ]]; then
+            log ERROR "Unexpected file '${file}' found in directory '${DIST_DIR}/${dir}'. The file name does not match any known configuration."
         else
-            mkdir -p "$(dirname "${target_path}")"
-            cp "${path}" "${target_path}"
+            echo ${source_path} '>>>' ${DIST_DIR}/${dir}
+            cp ${source_path} ${DIST_DIR}/${dir}
         fi
-    done
-
-    find "${DIST_DIR}" -type f -name "*.kubeconfig" | while read -r kube_file; do
-        if [ ! -s "${kube_file}" ]; then
-            filename="$(basename "${kube_file}" .kubeconfig)"
-            source_kubeconfig="${KUBECONFIG_DIR}/${filename}.yml"
-
-            if [ -f "${source_kubeconfig}" ]; then
-                log INFO "Source kubeconfig for '${kube_file}' using '${source_kubeconfig}'"
-                cp "${source_kubeconfig}" "${kube_file}"
-            else
-                log ERROR "Source kubeconfig for '${kube_file}' using '${source_kubeconfig}' was not found!"
-            fi
-        fi
-
-        mv "${kube_file}" "${kube_file}.yml"
     done
 
     log INFO SUCCESS "Result is in '${DIST_DIR}' directory"

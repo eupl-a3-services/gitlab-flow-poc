@@ -127,7 +127,7 @@ kubeconfig_setup() {
 
     while true; do
         log DEBUG KUBECONFIG: check ${current_dir}
-        found_file=$(find "$current_dir" -maxdepth 1 -type f -name "*.kubeconfig.yml" 2>/dev/null | head -n 1 || true)
+        found_file=$(find "$current_dir" -maxdepth 1 -type f -name "*.yml" 2>/dev/null | head -n 1 || true)
 
         if [[ -n "${found_file}" ]]; then
             log INFO KUBECONFIG: ${found_file}
@@ -136,7 +136,7 @@ kubeconfig_setup() {
         fi
 
         if [[ "${current_dir}" == "$KUBECONFIG_HOME" ]]; then
-            log ERROR "No *.kubeconfig.yml file found in any parent directory from ${KUBECONFIG_HOME}/${CI_PROJECT_PATH}/${AMS_SPACE} upwards."
+            log ERROR "No *.yml file found in any parent directory from ${KUBECONFIG_HOME}/${CI_PROJECT_PATH}/${AMS_SPACE} upwards."
             return 1
         fi
 

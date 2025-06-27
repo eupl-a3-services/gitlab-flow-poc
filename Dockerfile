@@ -13,6 +13,7 @@ ENV AMS=${AMS} \
     DOCKER_BUILDKIT=1\
     PATH="/opt/gitlab-flow/bin:${PATH}"\
     GLF_VERSION="/cache-volume/.glf.version"\
+    AUTH_HTPASSWD="/cache-volume/.auth.htpasswd"\
     ROLLOUT_HOME=/cache-volume/rolout\
     KUBECONFIG_HOME=/cache-volume/kubeconfig\
     ENV_HOME=/cache-volume/env\
@@ -24,7 +25,7 @@ WORKDIR /opt/${AMS_NAME}
 COPY opt/ .
 
 RUN apk upgrade && \
-    apk --no-cache add bash curl jq docker-cli tzdata git kubectl envsubst yq highlight openjdk11-jre xz git-crypt gnupg unzip zip mc && \
+    apk --no-cache add bash curl jq docker-cli tzdata git kubectl envsubst yq highlight openjdk11-jre xz git-crypt gnupg unzip zip mc apache2-utils python3 autoconf automake libtool build-base nasm make gawk zlib-dev && \
     mkdir -p /usr/local/lib/docker/cli-plugins/ && \
     curl -L https://github.com/docker/buildx/releases/download/v0.22.0/buildx-v0.22.0.linux-amd64 -o /usr/local/lib/docker/cli-plugins/docker-buildx && \
     chmod +x /usr/local/lib/docker/cli-plugins/docker-buildx && \
@@ -32,7 +33,36 @@ RUN apk upgrade && \
     addgroup -g 114 docker && \
     addgroup a3user docker && \
     chmod +x ./bin/* && \
-    for file in ./bin/*.bin.sh; do mv "$file" "${file%.bin.sh}"; done
+    for file in ./bin/*.bin.sh; do mv "$file" "${file%.bin.sh}"; done && \
+    curl -sL https://sentry.io/get-cli/ | sh && \
+    enm install 16.13.2
+
+#SHELL ["/bin/bash", "-c"]
+
+#RUN npm install -g n
+#RUN n 16.13.2
+
+#RUN export HOME="/root" && \
+#    export NVM_DIR="/root/.nvm" && \
+#    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash && \
+#    . /root/.nvm/nvm.sh && \
+#    echo ok
+##RUN . /root/.nvm/nvm.sh && nvm install 16.13.2
+#RUN log INFO cool
+#RUN . /root/.nvm/nvm.sh && nvm >> /root/nvm 2>&1 || true
+#RUN . /root/.nvm/nvm.sh && nvm install 16.13.2 >> /root/nvm.install 2>&1 || true
+#    nvm install 16.13.2 && \
+#    nvm alias default 16.13.2 && \
+#    nvm use default && \
+#    node -v
+
+#        export NVM_DIR="$HOME/.nvm" && \
+#    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && \
+
+#    export NVM_DIR="$HOME/.nvm" && \
+#    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && \
+    #    echo 'export NVM_DIR="$HOME/.nvm"' >> /etc/profile.d/nvm.sh && \
+#    echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> /etc/profile.d/nvm.sh
 
     #    chmod 775 ./dist/* && \
     #echo 'export PATH="/opt/gitlab-flow:$PATH"' >> /etc/profile.d/gitlab-flow.sh && \
