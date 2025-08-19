@@ -41,6 +41,10 @@ ansi_lint_env() {
   ansi-bar LINT-ENV "${left_text}"
 
   for VAR in $VARS; do
+    if [[ "$VAR" =~ ^[a-z_]+$ ]]; then
+      printf "\033[1;34m%-50s\033[0m%s\n" "$VAR" "«ignore»"
+      continue
+    fi
     if [ -n "${!VAR+x}" ]; then
       local VALUE="${!VAR}"
       local DISPLAY_VALUE

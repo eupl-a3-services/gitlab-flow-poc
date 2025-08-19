@@ -17,7 +17,8 @@ ENV AMS=${AMS} \
     ROLLOUT_HOME=/cache-volume/rolout\
     KUBECONFIG_HOME=/cache-volume/kubeconfig\
     ENV_HOME=/cache-volume/env\
-    CI_HOME=/cache-volume/ci
+    CI_HOME=/cache-volume/ci\
+    GIT_DEPTH=1
 
 
 WORKDIR /opt/${AMS_NAME}

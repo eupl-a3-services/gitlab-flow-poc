@@ -70,12 +70,19 @@ release() {
 
     ansi-cat Dockerfile
 
-    docker build -f Dockerfile \
+    docker buildx create --use
+
+    docker buildx build -f Dockerfile \
     --build-arg "AMS=${AMS}" \
     --build-arg "AMS_NAME=${AMS_NAME}" \
     --build-arg "AMS_REVISION=${AMS_REVISION}" \
     --build-arg "AMS_BUILD=${AMS_BUILD}" \
-    --no-cache -t ${AMS_IMAGE_REGISTRY} .
+    --platform linux/amd64 \
+    --no-cache \
+    -t ${AMS_IMAGE_REGISTRY} \
+    --load \
+    .
+
     docker push ${AMS_IMAGE_REGISTRY}
 
     export AMS_IMAGE_LAYERS=$(docker inspect ${AMS_IMAGE_REGISTRY} | jq '.[].RootFS.Layers | length')

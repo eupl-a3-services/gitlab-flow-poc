@@ -85,7 +85,7 @@ space_setup() {
 
 env_setup() {
     log INFO ENV: setup
-    if [ "$AMS_PARTITION" != "unit" ] && [ "$AMS_PARTITION" != "downstream" ]; then
+    if [ "$AMS_PARTITION" != "downstream" ]; then
         #if [[ -z ${AMS_SEGMENT} || ${AMS_SEGMENT} == no* ]]; then
         #    log ERROR "The value \"${AMS_SEGMENT}\" of AMS_SEGMENT is invalid. Please provide a valid segment."
         #    exit 1
@@ -118,7 +118,6 @@ env_setup() {
 
         ctx ENV
     fi
-
 }
 
 kubeconfig_setup() {
@@ -154,7 +153,7 @@ kube_compose() {
     PROCESSED=-processed
     AMS_NAMES_LOCAL=()
 
-    export request_uri='$request_uri'       # used for snippet redirect in ingress
+    #export request_uri='$request_uri'       # used for snippet redirect in ingress
     export hostname='${HOSTNAME}'           # used for stateless pod name
     
     DIR=$(pwd)
@@ -173,21 +172,50 @@ kube_compose() {
     > ${REQUEST_FILE}
     > ${KUBE_COMPOSE_NAME}.${KUBE_COMPOSE_EXT}
 
+    local AMS_NAME_ORIGIN=${AMS_NAME}
     for file in $DIR/'$'${KUBE_COMPOSE_NAME}*.${KUBE_COMPOSE_EXT}; do
         local RELATIVE_FILE="${file#$(pwd)/}"
+        
+        AMS_NAME=${AMS_NAME_ORIGIN}
+        KUBE_COMPOSE_SUFFIX=$(basename "$file" | sed -E "s/^\\\$${KUBE_COMPOSE_NAME}(.*)\.${KUBE_COMPOSE_EXT}$/\1/")
+        if [[ ${#KUBE_COMPOSE_SUFFIX} -gt 1 && "${KUBE_COMPOSE_SUFFIX}" == -* ]]; then
+            AMS_NAME="${KUBE_COMPOSE_SUFFIX:1}"
+        fi
+        log INFO AMS_NAME: ${AMS_NAME}
+
         ansi-lint-env ${RELATIVE_FILE} "$__HIDE_ENV_VALUES"
         if [ "${__HIDE_ENV_VALUES}" = "true" ]; then
             ansi-lint-env ${RELATIVE_FILE} >> ${REQUEST_FILE}
             log INFO "LINT-ENV for \"${RELATIVE_FILE}\" is stored in \"${SESSION_REQUEST_FILE}\""
         fi
+        
         while IFS= read -r line; do
             if [[ "$line" == !* ]]; then
-                COMMAND="$(echo "${line:2}" | tr -d '\n' | tr -d '\r' | xargs)"
-                eval "$COMMAND"
+                #COMMAND="$(echo "${line:2}" | tr -d '\n' | tr -d '\r' | xargs)"
+                #eval "$COMMAND"
+                log ERROR Found obsolete eval functionality. This is no longer supported. "eval in: ${file}"
+                exit 10
             fi
         done < <(grep '^!' "$file")
 
-        sed 's/^!/#  EVAL:/' "$file" | envsubst > "${file%.yml}${PROCESSED}.${KUBE_COMPOSE_EXT}"
+#    export KUBE_COMPOSE_NAME=kube-compose
+#    export KUBE_COMPOSE_EXT=yml
+#    AMS_NAME="qwerty"
+#    file=/tml/abcdefgh/123/\$kube-compose-mongo.yml
+
+
+#    echo ${KUBE_COMPOSE_SUFFIX}
+#    echo ${AMS_NAME}
+
+        VARS=$(grep -oE '\$\{[A-Z_][A-Z0-9_]*\}|\$[A-Z_][A-Z0-9_]*' "$file" \
+        | sed -E 's/^\$\{?([A-Z_][A-Z0-9_]*)\}?$/\1/' \
+        | sort -u \
+        | xargs -I{} echo -n '$'{}' ')
+
+        # Spusť envsubst len s nimi
+        envsubst "$VARS" < "$file" > "${file%.yml}${PROCESSED}.${KUBE_COMPOSE_EXT}"
+
+#        sed 's/^!/#  EVAL:/' "$file" | envsubst > "${file%.yml}${PROCESSED}.${KUBE_COMPOSE_EXT}"
 
         if [[ ! " ${AMS_NAMES_LOCAL[@]} " =~ " ${AMS_NAME} " ]]; then
             AMS_NAMES_LOCAL+=("${AMS_NAME}")

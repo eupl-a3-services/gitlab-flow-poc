@@ -15,7 +15,6 @@ The pipeline uses the Docker image `a3services/hub-gitlab-flow:${AMS_REVISION}` 
 | ---- `AMS_PARTITION` *            | V/-/P/- | unit \| zone \| shared                      | All (default) |*
 | ? CI_GROUP_ID              | V/-/-/E | 15786414                                       | All (default) |
 | ? CI_JOB_TOKEN_A3          | V/-/-/E | •••••                                          | All (default) |
-| `GIT_DEPTH`                  | V/V/-/- | 1                                              | All           |*
 | `GIT_STRATEGY`               | V/V/-/- | clone                                          | All           |*
 
 | `GITLAB_REGISTRY_USER`       | V/V/P/- | •••••                                          | kube-deploy   |*
