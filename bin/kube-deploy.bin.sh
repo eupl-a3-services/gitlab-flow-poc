@@ -122,7 +122,7 @@ env_setup() {
 
 kubeconfig_setup() {
     log INFO KUBECONFIG: setup
-    current_dir="${KUBECONFIG_HOME}/${CI_PROJECT_PATH}/${AMS_SPACE}"
+    current_dir="${KUBECONFIG_HOME}/${AMS_PROJECT}/${AMS_SPACE}"
 
     while true; do
         log DEBUG KUBECONFIG: check ${current_dir}
@@ -135,7 +135,7 @@ kubeconfig_setup() {
         fi
 
         if [[ "${current_dir}" == "$KUBECONFIG_HOME" ]]; then
-            log ERROR "No *.yml file found in any parent directory from ${KUBECONFIG_HOME}/${CI_PROJECT_PATH}/${AMS_SPACE} upwards."
+            log ERROR "No *.yml file found in any parent directory from ${KUBECONFIG_HOME}/${AMS_PROJECT}/${AMS_SPACE} upwards."
             return 1
         fi
 

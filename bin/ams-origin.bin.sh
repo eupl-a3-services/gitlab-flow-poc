@@ -132,6 +132,7 @@ env_files() {
     export AMS_BUILD=`date '+%y%m%d-%H%M%S'`
     export AMS_DIST=$(ams_dist "${AMS_REVISION}")
     export AMS_RESOURCE=$(ams_resource)
+    export AMS_PROJECT=${CI_PROJECT_PATH}
     export AMS_REGISTRY=${CI_REGISTRY_IMAGE}
 
     if [[ "${CI_COMMIT_BRANCH}" == "${CI_DEFAULT_BRANCH}" ]]; then
@@ -176,6 +177,7 @@ AMS_BUSINESS=${AMS_BUSINESS}
 AMS_ROLLOUT=${AMS_ROLLOUT}
 AMS_TRIGGER=${AMS_TRIGGER}
 AMS_RESOURCE=${AMS_RESOURCE}
+AMS_PROJECT=${AMS_PROJECT}
 AMS_REGISTRY=${AMS_REGISTRY}
 EOF
 

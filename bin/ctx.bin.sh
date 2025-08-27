@@ -21,6 +21,7 @@ ams_origin_ctx() {
     _ctx AMS_ROLLOUT ${AMS_ROLLOUT}
     _ctx AMS_TRIGGER ${AMS_TRIGGER}
     _ctx AMS_RESOURCE ${AMS_RESOURCE}
+    _ctx AMS_PROJECT ${AMS_PROJECT}
     _ctx AMS_REGISTRY ${AMS_REGISTRY}
     _ctx
 }
@@ -39,6 +40,7 @@ ams_pipeline_ctx() {
     _ctx AMS_TRIGGER ${AMS_TRIGGER}
     _ctx AMS_TRIGGER_JOB ${AMS_TRIGGER_JOB}
     _ctx AMS_RESOURCE ${AMS_RESOURCE}
+    _ctx AMS_PROJECT ${AMS_PROJECT}
     _ctx AMS_REGISTRY ${AMS_REGISTRY}
     _ctx
 }
