@@ -36,7 +36,8 @@ RUN apk upgrade && \
     chmod +x ./bin/* && \
     for file in ./bin/*.bin.sh; do mv "$file" "${file%.bin.sh}"; done && \
     curl -sL https://sentry.io/get-cli/ | sh && \
-    enm install 16.13.2
+    enm install 16.13.2 && \
+    enm install 22.12.0
 
 #SHELL ["/bin/bash", "-c"]
 

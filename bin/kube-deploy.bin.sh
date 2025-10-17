@@ -8,6 +8,7 @@ argument_config() {
     __INSPECT=false
     __DEBUG=false
     __NOPING=false
+    __SECRET=false
     __DELETE=false
     __DOWNSTREAM=false
     __HIDE_ENV_VALUES=false
@@ -28,6 +29,7 @@ argument_config() {
             --debug) __DEBUG=true ;;
             --delete) __DELETE=true ;;
             --noping) __NOPING=true ;;
+            --secret) __SECRET=true ;;
             --downstream) __DOWNSTREAM=true ;; 
             *)
                 log ERROR "Unexpected extra argument: $1"
@@ -80,7 +82,8 @@ space_setup() {
     esac
 
     export KUBE_COMPOSE_NAME=kube-compose
-    export KUBE_COMPOSE_EXT=yml
+    export KUBE_SPACE_NAME=kube-space
+    export KUBE_EXT=yml
 }
 
 env_setup() {
@@ -120,6 +123,14 @@ env_setup() {
     fi
 }
 
+apply_secret(){
+    if [[ "$__SECRET" == "true" ]]; then
+        log INFO APPLY_SECRET: enable
+        assert FILE kube-secret.env
+        set -a && . kube-secret.env && set +a
+    fi
+}
+
 kubeconfig_setup() {
     log INFO KUBECONFIG: setup
     current_dir="${KUBECONFIG_HOME}/${AMS_PROJECT}/${AMS_SPACE}"
@@ -149,6 +160,43 @@ kube_info() {
     ansi-cmd kubectl get namespaces
 }
 
+kube_space() {
+    log INFO KUBE_SPACE: setup
+    
+    local DIR=".kube"
+    local AMS_NAME_ORIGIN=${AMS_NAME}
+    for file in ${DIR}/'$'${KUBE_SPACE_NAME}*.${KUBE_EXT}; do        
+        AMS_NAME=${AMS_NAME_ORIGIN}
+        KUBE_SPACE_SUFFIX=$(basename "$file" | sed -E "s/^\\\$${KUBE_SPACE_NAME}(.*)\.${KUBE_EXT}$/\1/")
+        if [[ ${#KUBE_SPACE_SUFFIX} -gt 1 && "${KUBE_SPACE_SUFFIX}" == -* ]]; then
+            AMS_NAME="${KUBE_SPACE_SUFFIX:1}"
+        fi
+        #log INFO AMS_NAME: ${AMS_NAME}
+
+        assert ENV KUBE_SPACE
+        log INFO "KUBE_SPACE_ENV: ${KUBE_SPACE}"
+        IFS=', ' read -r -a KUBE_SPACE_ARRAY <<< "$KUBE_SPACE"
+
+        INPUT_FILE="${DIR}/\$${KUBE_SPACE_NAME}-${AMS_NAME}.${KUBE_EXT}"
+        OUTPUT_FILE="${DIR}/\$${KUBE_COMPOSE_NAME}-${AMS_NAME}.${KUBE_EXT}"
+
+        if [[ -f "${INPUT_FILE}" ]]; then
+            log INFO "KUBE_SPACE_FILE: ${INPUT_FILE}"
+
+            > "${OUTPUT_FILE}"
+
+            for space in "${KUBE_SPACE_ARRAY[@]}"; do
+                echo "--- ## SPACE: ${space}" >> "${OUTPUT_FILE}"
+
+                sed "s/\${AMS_SPACE}/${space}/g" "${INPUT_FILE}" >> "${OUTPUT_FILE}"
+                echo "" >> "${OUTPUT_FILE}"
+            done
+            ansi-cat "${OUTPUT_FILE}"
+        fi
+
+    done
+}
+
 kube_compose() {
     PROCESSED=-processed
     AMS_NAMES_LOCAL=()
@@ -163,21 +211,21 @@ kube_compose() {
         cp -r .kube/* .
     }
 
-    assert GLOB '\$'${KUBE_COMPOSE_NAME}*.${KUBE_COMPOSE_EXT}
+    assert GLOB '\$'${KUBE_COMPOSE_NAME}*.${KUBE_EXT}
 
     local REQUEST_NAME=${AMS_NAME}-${AMS_REVISION}-${AMS_SPACE}
     local REQUEST_FILE=/tmp/${REQUEST_NAME}.kube
     local SESSION_REQUEST_NAME="${REQUEST_NAME}.kube-session-request"
     local SESSION_REQUEST_FILE="/cache-volume/session-request/${SESSION_REQUEST_NAME}"
     > ${REQUEST_FILE}
-    > ${KUBE_COMPOSE_NAME}.${KUBE_COMPOSE_EXT}
+    > ${KUBE_COMPOSE_NAME}.${KUBE_EXT}
 
     local AMS_NAME_ORIGIN=${AMS_NAME}
-    for file in $DIR/'$'${KUBE_COMPOSE_NAME}*.${KUBE_COMPOSE_EXT}; do
+    for file in ${DIR}/'$'${KUBE_COMPOSE_NAME}*.${KUBE_EXT}; do
         local RELATIVE_FILE="${file#$(pwd)/}"
         
         AMS_NAME=${AMS_NAME_ORIGIN}
-        KUBE_COMPOSE_SUFFIX=$(basename "$file" | sed -E "s/^\\\$${KUBE_COMPOSE_NAME}(.*)\.${KUBE_COMPOSE_EXT}$/\1/")
+        KUBE_COMPOSE_SUFFIX=$(basename "$file" | sed -E "s/^\\\$${KUBE_COMPOSE_NAME}(.*)\.${KUBE_EXT}$/\1/")
         if [[ ${#KUBE_COMPOSE_SUFFIX} -gt 1 && "${KUBE_COMPOSE_SUFFIX}" == -* ]]; then
             AMS_NAME="${KUBE_COMPOSE_SUFFIX:1}"
         fi
@@ -191,21 +239,10 @@ kube_compose() {
         
         while IFS= read -r line; do
             if [[ "$line" == !* ]]; then
-                #COMMAND="$(echo "${line:2}" | tr -d '\n' | tr -d '\r' | xargs)"
-                #eval "$COMMAND"
                 log ERROR Found obsolete eval functionality. This is no longer supported. "eval in: ${file}"
                 exit 10
             fi
         done < <(grep '^!' "$file")
-
-#    export KUBE_COMPOSE_NAME=kube-compose
-#    export KUBE_COMPOSE_EXT=yml
-#    AMS_NAME="qwerty"
-#    file=/tml/abcdefgh/123/\$kube-compose-mongo.yml
-
-
-#    echo ${KUBE_COMPOSE_SUFFIX}
-#    echo ${AMS_NAME}
 
         VARS=$(grep -oE '\$\{[A-Z_][A-Z0-9_]*\}|\$[A-Z_][A-Z0-9_]*' "$file" \
         | sed -E 's/^\$\{?([A-Z_][A-Z0-9_]*)\}?$/\1/' \
@@ -213,33 +250,31 @@ kube_compose() {
         | xargs -I{} echo -n '$'{}' ')
 
         # Spusť envsubst len s nimi
-        envsubst "$VARS" < "$file" > "${file%.yml}${PROCESSED}.${KUBE_COMPOSE_EXT}"
-
-#        sed 's/^!/#  EVAL:/' "$file" | envsubst > "${file%.yml}${PROCESSED}.${KUBE_COMPOSE_EXT}"
+        envsubst "$VARS" < "$file" > "${file%.yml}${PROCESSED}.${KUBE_EXT}"
 
         if [[ ! " ${AMS_NAMES_LOCAL[@]} " =~ " ${AMS_NAME} " ]]; then
             AMS_NAMES_LOCAL+=("${AMS_NAME}")
         fi
     done
 
-    for processed_file in $(ls $DIR/*${PROCESSED}.${KUBE_COMPOSE_EXT} | sort); do
-        echo "---" >> ${KUBE_COMPOSE_NAME}.${KUBE_COMPOSE_EXT}
+    for processed_file in $(ls $DIR/*${PROCESSED}.${KUBE_EXT} | sort); do
+        #echo "---" >> ${KUBE_COMPOSE_NAME}.${KUBE_EXT}
         original_file_name=$(basename "$processed_file" | sed "s/${PROCESSED}//")
-        echo "## FILE: $original_file_name" >> ${KUBE_COMPOSE_NAME}.${KUBE_COMPOSE_EXT}
-        cat "$processed_file" >> ${KUBE_COMPOSE_NAME}.${KUBE_COMPOSE_EXT}
-        echo "" >> ${KUBE_COMPOSE_NAME}.${KUBE_COMPOSE_EXT}
+        echo "--- # FILE: $original_file_name" >> ${KUBE_COMPOSE_NAME}.${KUBE_EXT}
+        cat "$processed_file" >> ${KUBE_COMPOSE_NAME}.${KUBE_EXT}
+        echo "" >> ${KUBE_COMPOSE_NAME}.${KUBE_EXT}
     done
 
-    rm -f $DIR/*${PROCESSED}.${KUBE_COMPOSE_EXT}
+    rm -f $DIR/*${PROCESSED}.${KUBE_EXT}
     if [ "${__HIDE_ENV_VALUES}" = "true" ]; then
-        ansi-cat "${KUBE_COMPOSE_NAME}.${KUBE_COMPOSE_EXT}" >> ${REQUEST_FILE}
+        ansi-cat "${KUBE_COMPOSE_NAME}.${KUBE_EXT}" >> ${REQUEST_FILE}
 
         rm -f "${SESSION_REQUEST_FILE}"
         zip -j -P "${PDS_TOKEN}" "${SESSION_REQUEST_FILE}" "${REQUEST_FILE}"
 
         log INFO "KUBE_SESSION_REQUEST_FILE is stored in \"${SESSION_REQUEST_FILE}\""
     else
-        ansi-cat "${KUBE_COMPOSE_NAME}.${KUBE_COMPOSE_EXT}"
+        ansi-cat "${KUBE_COMPOSE_NAME}.${KUBE_EXT}"
     fi
     
     if [[ -z "${AMS_NAMES[*]}" ]]; then
@@ -257,30 +292,17 @@ kube_deploy() {
     fi
 
     KUBE_NAMESPACE="ns-${AMS_SPACE}"
-    export ANSI_HIGHLIGHT="created:32,configured:32,restarted:32,unchanged:33,invalid:31,error:31"
+    export ANSI_HIGHLIGHT="created:32,configured:32,restarted:32,unchanged:33,Warning:33,invalid:31,error:31,Error:31"
     log INFO KUBE_NAMESPACE=${KUBE_NAMESPACE}
-
-    if ! kubectl get namespace "${KUBE_NAMESPACE}" > /dev/null 2>&1; then
-        log INFO "Namespace '${KUBE_NAMESPACE}' does not exist."
-        ansi-cmd kubectl create namespace "${KUBE_NAMESPACE}"
-
-        assert ENV GITLAB_REGISTRY_USER
-        assert ENV GITLAB_REGISTRY_TOKEN
-        ansi-cmd kubectl create secret docker-registry gitlab-registry-secret \
-            --docker-server=registry.gitlab.com \
-            --docker-username=${GITLAB_REGISTRY_USER} \
-            --docker-password=${GITLAB_REGISTRY_TOKEN} \
-            -n "${KUBE_NAMESPACE}"
-    fi
 
     if [ "$__DELETE" = true ]; then
         log INFO "Deleting Kubernetes resources in context '$KUBE_CURRENT_CONTEXT' using kubectl delete"
-        kubectl delete --ignore-not-found -f ${KUBE_COMPOSE_NAME}.${KUBE_COMPOSE_EXT} 2>&1 | \
+        kubectl delete --ignore-not-found -f ${KUBE_COMPOSE_NAME}.${KUBE_EXT} 2>&1 | \
         sed \
             -e $'s/deleted/\033[32m&\033[0m/g'
     fi
 
-    ansi-cmd kubectl apply -f ${KUBE_COMPOSE_NAME}.${KUBE_COMPOSE_EXT}
+    ansi-cmd kubectl apply -f ${KUBE_COMPOSE_NAME}.${KUBE_EXT}
 
     for deployment in $(echo "$output" | grep "deployment.apps" | awk '{print $1}' | cut -d '/' -f 2); do
         log INFO "DEPLOYMENT: $deployment"
@@ -321,10 +343,12 @@ space_setup
 ctx AMS_DEPLOY
 
 env_setup
+apply_secret
 
 kubeconfig_setup
 
 kube_info
+kube_space
 kube_compose
 kube_deploy
 

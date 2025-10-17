@@ -8,6 +8,8 @@ argument_config() {
     __INSPECT=false
     __DEBUG=false
     __SERVICE=false
+    __OPT_AMS_SERVICE=false
+    __OPT_PSQL_KIT=false
 
     case "${GLF_LOG}" in
         inspect|INSPECT)
@@ -21,10 +23,12 @@ argument_config() {
     
     while [[ "$#" -gt 0 ]]; do
         case $1 in
-            --inspect) __INSPECT=true ;;
-            --debug) __DEBUG=true ;;
-            --service) __SERVICE=true ;;
-            *) log ERROR "Unknown parameter: $1" ;;  
+            --inspect)         __INSPECT=true ;;
+            --debug)           __DEBUG=true ;;
+            --service)         __SERVICE=true ;;
+            --opt-ams-service) __OPT_AMS_SERVICE=true ;;
+            --opt-psql-kit)    __OPT_PSQL_KIT=true ;;
+            *) log ERROR "Unknown parameter: $1"; exit 64 ;;
         esac
         shift
     done
@@ -38,9 +42,24 @@ argument_config() {
     fi
 
     if [ "$__SERVICE" = true ]; then
-        mkdir -p service
-        cp /opt/gitlab-flow/dist/ams-service service/ams-service
-        cp /opt/gitlab-flow/dist/ams-service-alpine service/ams-service-alpine
+        log ERROR Option '--service' is deprecated. Use '--opt-ams-service' instead.
+        exit 1
+    fi
+
+    if [ "$__OPT_AMS_SERVICE" = true ]; then
+        mkdir -p opt/ams-service
+        cp /opt/gitlab-flow/dist/ams-service opt/ams-service/ams-service
+        cp /opt/gitlab-flow/dist/ams-service-alpine opt/ams-service/ams-service-alpine
+    fi
+
+    if [ "$__OPT_PSQL_KIT" = true ]; then
+        mkdir -p opt/psql-kit
+        cp /opt/gitlab-flow/dist/key-value-preview.bin.sh   opt/psql-kit/key-value-preview.bin.sh
+        cp /opt/gitlab-flow/dist/log.bin.sh                 opt/psql-kit/log.bin.sh
+        cp /opt/gitlab-flow/dist/psql-backup.bin.sh         opt/psql-kit/psql-backup.bin.sh
+        cp /opt/gitlab-flow/dist/psql-init.bin.sh           opt/psql-kit/psql-init.bin.sh
+        cp /opt/gitlab-flow/dist/psql-log.bin.sh            opt/psql-kit/psql-log.bin.sh
+        cp /opt/gitlab-flow/dist/psql-sentinel.bin.sh       opt/psql-kit/psql-sentinel.bin.sh
     fi
 }
 

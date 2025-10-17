@@ -22,7 +22,7 @@ argument_config() {
         case $1 in
             --inspect) __INSPECT=true ;;
             --debug) __DEBUG=true ;;
-            *) log ERROR "Unknown parameter: $1" ;;
+            *) log ERROR "Unknown parameter: $1"; exit 64 ;;
         esac
         shift
     done

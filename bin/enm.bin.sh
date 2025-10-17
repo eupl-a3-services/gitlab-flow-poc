@@ -35,17 +35,42 @@ install_node() {
 }
 
 use_node() {
-  version=$1
-  if [ ! -d "${ENM_DIR}/${version}" ]; then
-    log ERROR "Node version $version is not installed."
+  node_version=$1
+  NODE_DIR="${ENM_DIR}/${node_version}"
+
+  if [ ! -d "$NODE_DIR" ]; then
+    log ERROR "Node version $node_version is not installed."
     exit 1
   fi
 
-  ln -sf "${ENM_DIR}/${version}/bin/node" /usr/local/bin/node
-  ln -sf "${ENM_DIR}/${version}/bin/npm" /usr/local/bin/npm
-  
-  log INFO "Switched to Node ${version}"
+  # delete old simlink
+  for bin in /usr/local/bin/*; do
+    if [ -L "$bin" ] && readlink "$bin" | grep -q "^$ENM_DIR"; then
+      rm "$bin"
+    fi
+  done
+
+  # create new simlink
+  for bin in "$NODE_DIR/bin/"*; do
+    ln -sf "$bin" /usr/local/bin/$(basename "$bin")
+  done
+
+  log INFO "Switched to Node ${node_version}"
   node -v
+}
+
+use_yarn() {
+  yarn_version=$1
+  if ! command -v corepack &> /dev/null; then
+    log ERROR "Corepack is not installed."
+    exit 1
+  fi
+
+  corepack enable
+  corepack prepare yarn@"$yarn_version" --activate
+
+  log INFO "Switched to Yarn ${yarn_version}"
+  yarn -v
 }
 
 list_versions() {
@@ -58,6 +83,9 @@ case "$1" in
     ;;
   use)
     use_node "$2"
+    ;;
+  yarn)
+    use_yarn "$2"
     ;;
   list)
     list_versions

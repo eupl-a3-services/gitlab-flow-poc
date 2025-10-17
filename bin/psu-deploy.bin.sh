@@ -24,7 +24,7 @@ argument_config() {
             --inspect) __INSPECT=true ;;
             --debug) __DEBUG=true ;;
             --noping) __NOPING=true ;;
-            *) log ERROR "Unknown parameter: $1" ;;
+            *) log ERROR "Unknown parameter: $1"; exit 64 ;;
         esac
         shift
     done
