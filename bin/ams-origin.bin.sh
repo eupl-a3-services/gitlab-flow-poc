@@ -74,16 +74,16 @@ ams_resource() {
 }
 
 ams_rollout() {
-    export AMS_SEGMENT="no-segment"
-    export AMS_RELEASE="no-release"
-    export AMS_BUSINESS="no-business"
-    export AMS_PARTITION="no-partition"
+    export AMS_SEGMENT="${AMS_SEGMENT:-no-segment}"
+    export AMS_RELEASE="${AMS_RELEASE:-no-release}"
+    export AMS_BUSINESS="${AMS_BUSINESS:-no-business}"
+    export AMS_PARTITION="${AMS_PARTITION:-no-partition}"
 
     if [[ "${AMS_RESOURCE}" == "protected" || "${AMS_RESOURCE}" == "tag" || "${AMS_RESOURCE}" == "default" ]]; then
         if [[ "${AMS_ROLLOUT}" =~ ^([@a-z0-9-]+)\/([^\/]+)\/([^\/]+)$ ]]; then
-            export AMS_SEGMENT="${BASH_REMATCH[1]}"
-            export AMS_RELEASE="${BASH_REMATCH[2]}"
-            export AMS_BUSINESS="${BASH_REMATCH[3]}"
+            [[ "${AMS_SEGMENT}" == "no-segment" ]] && export AMS_SEGMENT="${BASH_REMATCH[1]}"
+            [[ "${AMS_RELEASE}" == "no-release" ]] && export AMS_RELEASE="${BASH_REMATCH[2]}"
+            [[ "${AMS_BUSINESS}" == "no-business" ]] && export AMS_BUSINESS="${BASH_REMATCH[3]}"
 
             if [[ "${AMS_SEGMENT}" == "@" ]]; then
                 export AMS_PARTITION="unit"
@@ -91,6 +91,8 @@ ams_rollout() {
                 export AMS_PARTITION="zone"
             elif [[ "${AMS_SEGMENT}" =~ ^[a-z]$ ]]; then
                 export AMS_PARTITION="shared"
+            else
+                export AMS_PARTITION="unknown"
             fi
         else
             export AMS_SEGMENT="no-regex-${AMS_RESOURCE}"

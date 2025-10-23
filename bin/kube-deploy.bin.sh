@@ -163,6 +163,13 @@ kube_info() {
 kube_space() {
     log INFO KUBE_SPACE: setup
     
+    if [[ -z "${KUBE_SPACE}" ]]; then
+        log INFO "KUBE_SPACE: disabled - env KUBE_SPACE is not defined, skipping space generation"
+        return 0
+    fi
+    
+    log INFO "KUBE_SPACE: enabled - '${KUBE_SPACE}'"
+
     local DIR=".kube"
     local AMS_NAME_ORIGIN=${AMS_NAME}
     for file in ${DIR}/'$'${KUBE_SPACE_NAME}*.${KUBE_EXT}; do        
@@ -173,7 +180,6 @@ kube_space() {
         fi
         #log INFO AMS_NAME: ${AMS_NAME}
 
-        assert ENV KUBE_SPACE
         log INFO "KUBE_SPACE_ENV: ${KUBE_SPACE}"
         IFS=', ' read -r -a KUBE_SPACE_ARRAY <<< "$KUBE_SPACE"
 

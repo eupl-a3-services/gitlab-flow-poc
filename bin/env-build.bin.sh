@@ -39,11 +39,31 @@ argument_config() {
 }
 
 env_build() {
+    local has_crlf=false
+    for FILE in src/*.env; do
+        if grep -q $'\r' "$FILE"; then
+            log ERROR "File '$FILE' contains CRLF line endings (Windows format). Please convert to LF."
+            has_crlf=true
+        fi
+    done
+
+    if [[ "$has_crlf" == true ]]; then
+        log ERROR "Aborting due to CRLF issues."
+        return 1
+    fi
+
     mkdir -p dist
     export ENV_REVISION=${AMS_REVISION}
     export ENV_BUILD=${AMS_BUILD}
-    ENV_HEAD=`echo -e "AHS_REVISION=${AHS_REVISION}\nAHS_BUILD=${AHS_BUILD}\nENV_REVISION=${ENV_REVISION}\nENV_BUILD=${ENV_BUILD}\n"`
-    (cd src && for FILE in *.env; do echo "${ENV_HEAD}" > ../dist/${FILE} && echo >> ../dist/${FILE} && cat ${FILE} >> ../dist/${FILE}; done)
+    ENV_HEAD=$(echo -e "AHS_REVISION=${AHS_REVISION}\nAHS_BUILD=${AHS_BUILD}\nENV_REVISION=${ENV_REVISION}\nENV_BUILD=${ENV_BUILD}\n")
+    (
+        cd src
+        for FILE in *.env; do
+            echo "${ENV_HEAD}" > "../dist/${FILE}"
+            echo >> "../dist/${FILE}"
+            cat "${FILE}" >> "../dist/${FILE}"
+        done
+    )
 }
 
 env_build_crypt() {
