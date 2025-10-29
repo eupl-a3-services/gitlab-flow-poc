@@ -38,16 +38,53 @@ argument_config() {
     fi
 }
 
+yml_to_env(){
+    local has_yaml_error=false
+
+    mkdir -p src
+
+    for YML_FILE in src/*.yml; do
+        [[ -f "$YML_FILE" ]] || continue
+
+        local BASENAME="${YML_FILE##*/}"
+        BASENAME="${BASENAME%.*}"
+        local ENV_FILE="src/${BASENAME}.env"
+
+        if [[ -f "$ENV_FILE" ]]; then
+            log ERROR "Conversion error: '${YML_FILE}' cannot be converted because '${ENV_FILE}' already exists."
+            has_yaml_error=true
+            continue
+        fi
+
+        log INFO "Converting '${YML_FILE}' → '${ENV_FILE}'"
+
+        for key in $(yq eval 'keys | .[]' "$YML_FILE"); do
+            value=$(yq eval ".\"$key\"" "$YML_FILE" -o=json | jq -c .)
+            if [[ $value =~ ^\"(.*)\"$ ]]; then
+                value="'${BASH_REMATCH[1]}'"
+            else
+                value="'$value'"
+            fi
+            echo "${key}=${value}" >> "$ENV_FILE"
+        done
+    done
+
+    if [[ "$has_yaml_error" == true ]]; then
+        log ERROR "Aborting due to YAML conversion errors."
+        return 1
+    fi
+}
+
 env_build() {
-    local has_crlf=false
+    local has_crlf_error=false
     for FILE in src/*.env; do
         if grep -q $'\r' "$FILE"; then
             log ERROR "File '$FILE' contains CRLF line endings (Windows format). Please convert to LF."
-            has_crlf=true
+            has_crlf_error=true
         fi
     done
 
-    if [[ "$has_crlf" == true ]]; then
+    if [[ "$has_crlf_error" == true ]]; then
         log ERROR "Aborting due to CRLF issues."
         return 1
     fi
@@ -102,6 +139,7 @@ ctx AMS_ORIGIN
 
 argument_config "$@"
 
+yml_to_env
 if [ "$__CRYPT" = true ]; then
     env_build_crypt
 else

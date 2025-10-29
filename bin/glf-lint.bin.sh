@@ -38,7 +38,7 @@ argument_config() {
     fi
 }
 
-glf_lint() {
+glf_lint_version() {
     GLF_SEMVER=$(cat "$GLF_VERSION" 2>/dev/null || echo "0.0.0")
 
     IMAGE=$(yq '.image' .gitlab-ci.yml)
@@ -69,6 +69,6 @@ ctx AHS_ORIGIN
 
 argument_config "$@"
 
-glf_lint
+glf_lint_version
 
 ctx ENV

@@ -83,6 +83,7 @@ space_setup() {
 
     export KUBE_COMPOSE_NAME=kube-compose
     export KUBE_SPACE_NAME=kube-space
+    export KUBE_NODE_NAME=kube-node
     export KUBE_EXT=yml
 }
 
@@ -160,6 +161,49 @@ kube_info() {
     ansi-cmd kubectl get namespaces
 }
 
+kube_node() {
+    log INFO KUBE_NODE: setup
+    
+    if [[ -z "${KUBE_NODE}" ]]; then
+        log INFO "KUBE_NODE: disabled - env KUBE_NODE is not defined, skipping node generation"
+        return 0
+    fi
+    
+    log INFO "KUBE_NODE: enabled - '${KUBE_NODE}'"
+
+    local DIR=".kube"
+    local AMS_NAME_ORIGIN=${AMS_NAME}
+    for file in ${DIR}/'$'${KUBE_NODE_NAME}*.${KUBE_EXT}; do        
+        AMS_NAME=${AMS_NAME_ORIGIN}
+        KUBE_NODE_SUFFIX=$(basename "$file" | sed -E "s/^\\\$${KUBE_NODE_NAME}(.*)\.${KUBE_EXT}$/\1/")
+        if [[ ${#KUBE_NODE_SUFFIX} -gt 1 && "${KUBE_NODE_SUFFIX}" == -* ]]; then
+            AMS_NAME="${KUBE_NODE_SUFFIX:1}"
+        fi
+        #log INFO AMS_NAME: ${AMS_NAME}
+
+        log INFO "KUBE_NODE_ENV: ${KUBE_NODE}"
+        IFS=', ' read -r -a KUBE_NODE_ARRAY <<< "$KUBE_NODE"
+
+        INPUT_FILE="${DIR}/\$${KUBE_NODE_NAME}-${AMS_NAME}.${KUBE_EXT}"
+        OUTPUT_FILE="${DIR}/\$${KUBE_COMPOSE_NAME}-${AMS_NAME}.${KUBE_EXT}"
+
+        if [[ -f "${INPUT_FILE}" ]]; then
+            log INFO "KUBE_NODE_FILE: ${INPUT_FILE}"
+
+            > "${OUTPUT_FILE}"
+
+            for node in "${KUBE_NODE_ARRAY[@]}"; do
+                echo "--- ## NODE: ${node}" >> "${OUTPUT_FILE}"
+
+                sed "s/\${AMS_NODE}/${node}/g" "${INPUT_FILE}" >> "${OUTPUT_FILE}"
+                echo "" >> "${OUTPUT_FILE}"
+            done
+            ansi-cat "${OUTPUT_FILE}"
+        fi
+
+    done
+}
+
 kube_space() {
     log INFO KUBE_SPACE: setup
     
@@ -172,16 +216,26 @@ kube_space() {
 
     local DIR=".kube"
     local AMS_NAME_ORIGIN=${AMS_NAME}
+
+    log INFO "KUBE_SPACE_ENV: ${KUBE_SPACE}"
+    IFS=', ' read -r -a KUBE_SPACE_ARRAY <<< "$KUBE_SPACE"
+
+    for space in "${KUBE_SPACE_ARRAY[@]}"; do
+        log INFO "Processing SPACE: ${space}"
+        if ! kubectl get namespace "ns-${space}" > /dev/null 2>&1; then
+            ansi-cmd kubectl create namespace "ns-${space}"
+            log INFO "Namespace 'ns-${space}' has been created."
+        else
+            log INFO "Namespace 'ns-${space}' already exists."
+        fi
+    done
+
     for file in ${DIR}/'$'${KUBE_SPACE_NAME}*.${KUBE_EXT}; do        
         AMS_NAME=${AMS_NAME_ORIGIN}
         KUBE_SPACE_SUFFIX=$(basename "$file" | sed -E "s/^\\\$${KUBE_SPACE_NAME}(.*)\.${KUBE_EXT}$/\1/")
         if [[ ${#KUBE_SPACE_SUFFIX} -gt 1 && "${KUBE_SPACE_SUFFIX}" == -* ]]; then
             AMS_NAME="${KUBE_SPACE_SUFFIX:1}"
         fi
-        #log INFO AMS_NAME: ${AMS_NAME}
-
-        log INFO "KUBE_SPACE_ENV: ${KUBE_SPACE}"
-        IFS=', ' read -r -a KUBE_SPACE_ARRAY <<< "$KUBE_SPACE"
 
         INPUT_FILE="${DIR}/\$${KUBE_SPACE_NAME}-${AMS_NAME}.${KUBE_EXT}"
         OUTPUT_FILE="${DIR}/\$${KUBE_COMPOSE_NAME}-${AMS_NAME}.${KUBE_EXT}"
@@ -193,15 +247,14 @@ kube_space() {
 
             for space in "${KUBE_SPACE_ARRAY[@]}"; do
                 echo "--- ## SPACE: ${space}" >> "${OUTPUT_FILE}"
-
                 sed "s/\${AMS_SPACE}/${space}/g" "${INPUT_FILE}" >> "${OUTPUT_FILE}"
                 echo "" >> "${OUTPUT_FILE}"
             done
             ansi-cat "${OUTPUT_FILE}"
         fi
-
     done
 }
+
 
 kube_compose() {
     PROCESSED=-processed
@@ -301,6 +354,13 @@ kube_deploy() {
     export ANSI_HIGHLIGHT="created:32,configured:32,restarted:32,unchanged:33,Warning:33,invalid:31,error:31,Error:31"
     log INFO KUBE_NAMESPACE=${KUBE_NAMESPACE}
 
+    if ! kubectl get namespace "${KUBE_NAMESPACE}" > /dev/null 2>&1; then
+        ansi-cmd kubectl create namespace "${KUBE_NAMESPACE}"
+        log INFO "Namespace '${KUBE_NAMESPACE}' has been created."
+    else
+        log INFO "Namespace '${KUBE_NAMESPACE}' already exists."
+    fi
+
     if [ "$__DELETE" = true ]; then
         log INFO "Deleting Kubernetes resources in context '$KUBE_CURRENT_CONTEXT' using kubectl delete"
         kubectl delete --ignore-not-found -f ${KUBE_COMPOSE_NAME}.${KUBE_EXT} 2>&1 | \
@@ -354,6 +414,7 @@ apply_secret
 kubeconfig_setup
 
 kube_info
+kube_node
 kube_space
 kube_compose
 kube_deploy
