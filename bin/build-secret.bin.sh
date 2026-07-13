@@ -2,7 +2,7 @@
 
 set -e
 
-log INFO "GLF_LOG: '${GLF_LOG}'. Options: [INSPECT, DEBUG]"
+log INFO "GLAB_LOG: '${GLAB_LOG}'. Options: [INSPECT, DEBUG]"
 
 argument_config() {
     __INSPECT=false
@@ -10,7 +10,7 @@ argument_config() {
     __QA=false
     __TLS=false
 
-    case "${GLF_LOG}" in
+    case "${GLAB_LOG}" in
         inspect|INSPECT)
             __INSPECT=true
             __DEBUG=true

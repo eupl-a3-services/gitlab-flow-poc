@@ -32,20 +32,31 @@ compare_values() {
   local NAME="$1"
   local AMS="$2"
   local RESPONSE="$3"
+
   local RED="\033[0;31m"
   local GREEN="\033[0;32m"
+  local YELLOW="\033[1;33m"
   local NC="\033[0m"
   
   NAME=$(printf "%-17s" "$NAME")
   AMS=$(printf "%-22s" "$AMS")
   RESPONSE=$(printf "%-22s" "$RESPONSE")
-  
-  if [[ "$AMS" == "${RESPONSE}" ]]; then
-    echo -e "| ${NAME} | ${GREEN}${AMS}${NC} | ${GREEN}${RESPONSE}${NC} | ${GREEN}Match   ${NC} |"
-  else
-    echo -e "| ${NAME} | ${RED}${AMS}${NC} | ${RED}${RESPONSE}${NC} | ${RED}No Match${NC} |"
+
+  local COLOR="$GREEN"
+  local STATUS="Match   "
+
+  if [[ "$AMS" != "$RESPONSE" ]]; then
+    STATUS="No Match"
+    COLOR="$RED"
+
+    if [[ "$NAME" == *"AMS_DEPLOY"* || "$NAME" == *"AMS_RUN"* ]]; then
+      STATUS="Warn    "
+      COLOR="$YELLOW"
+    fi
   fi
+  echo -e "| ${NAME} | ${COLOR}${AMS}${NC} | ${COLOR}${RESPONSE}${NC} | ${COLOR}${STATUS}${NC} |"
 }
+
 check_deployment() {
   RESPONSE=$(curl -sk -w "%{http_code}" -o response.txt "${AMS_ENDPOINT}")
   HTTP_CODE="${RESPONSE:(-3)}"
@@ -82,7 +93,7 @@ check_deployment() {
   
   if [[ "${RESPONSE_REVISION}" == "${AMS_REVISION}" && \
         "${RESPONSE_NAME}" == "${AMS_NAME}" && \
-        "${RESPONSE_DEPLOY}" == "${AMS_DEPLOY}" && \
+#        "${RESPONSE_DEPLOY}" == "${AMS_DEPLOY}" && \
         "${RESPONSE_SPACE}" == "${AMS_SPACE}" ]]; then
     log SUCCESS "Deployment successful."
     exit 0

@@ -2,13 +2,13 @@
 
 set -e
 
-log INFO "GLF_LOG: '${GLF_LOG}'. Options: [INSPECT, DEBUG]"
+log INFO "GLAB_LOG: '${GLAB_LOG}'. Options: [INSPECT, DEBUG]"
 
 argument_config() {
     __INSPECT=false
     __DEBUG=false
 
-    case "${GLF_LOG}" in
+    case "${GLAB_LOG}" in
         inspect|INSPECT)
             __INSPECT=true
             __DEBUG=true
@@ -36,15 +36,13 @@ argument_config() {
     fi
 }
 
-auth_deploy() {
-    input="dist/.auth.htpasswd"
-    cp ${input} ${AUTH_HTPASSWD}
-    ansi-cat ${AUTH_HTPASSWD}
+build_postgres() {
+    mkdir -p .opt/init
+    cp -r .init/* .opt/init/
 }
 
 ctx AHS_ORIGIN
-ctx AMS_ORIGIN
 
 argument_config "$@"
 
-auth_deploy
+build_postgres

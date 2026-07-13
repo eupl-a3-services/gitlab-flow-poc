@@ -1,10 +1,10 @@
 ---
 description: Copyright © 2025 WILLING + HEAR s.r.o. • Made by CHZB • Licensed under EUPL-1.2
 categories: tools
-repo: hub
 app_param:
-run_pds: docker run --rm a3services/hub-gitlab-flow:${AMS_REVISION} install-pds \| bash
-run_mc: docker run -it --rm a3services/hub-gitlab-flow:${AMS_REVISION} mc
+run_pds: docker run --rm a3services/${AMS_NAME}:${AMS_REVISION} install-pds \| bash
+run_mc: docker run -it --rm a3services/${AMS_NAME}:${AMS_REVISION} mc
+run_bin: docker run -it --rm -v "$(pwd)/.bin:/opt/.bin" a3services/${AMS_NAME}:${AMS_REVISION} sh -c ".bin ; /bin/bash"
 ---
 
 # GitLab Flow for Docker Image Building & Deployment

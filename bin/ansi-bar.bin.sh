@@ -15,7 +15,8 @@ ansi_bar() {
 
     case "$label" in
         CAT) background_color="\033[44;97m" ;;
-        ARRAY) background_color="\033[42;97m" ;;
+        ARRAY-INDEX) background_color="\033[42;97m" ;;
+        ARRAY-ASSOC) background_color="\033[42;97m" ;;
         LINT-ENV) background_color="\033[46;97m" ;;
         CMD) background_color="\033[45;30m" ;;
         *) background_color="\033[47;30m" ;;

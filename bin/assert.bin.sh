@@ -3,12 +3,18 @@
 assert() {
     local TYPE="$1"
     local VALUE="$2"
+    local DEFAULT="$3"
 
     case "$TYPE" in
         ENV)
             if [ -z "${!VALUE}" ]; then
-                log ASSERT "ENV: Environment variable '$VALUE' is not set!"
-                exit 1
+                if [ -n "$DEFAULT" ]; then
+                    export "$VALUE=$DEFAULT"
+                    log ASSERT "ENV: '$VALUE' not set, using default '$DEFAULT'"
+                else
+                    log ASSERT "ENV: Environment variable '$VALUE' is not set!"
+                    exit 1
+                fi
             fi
             ;;
         DIR)
@@ -37,9 +43,9 @@ assert() {
     esac
 }
 
-if [[ $# -ne 2 ]]; then
-    log USAGE "$0 {ENV|DIR|FILE|GLOB} VALUE"
+if [[ $# -lt 2 || $# -gt 3 ]]; then
+    log USAGE "$0 {ENV|DIR|FILE|GLOB} VALUE [DEFAULT]"
     exit 64
 fi
 
-assert "$1" "$2"
+assert "$1" "$2" "$3"

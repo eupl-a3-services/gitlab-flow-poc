@@ -2,14 +2,14 @@
 
 set -e
 
-log INFO "GLF_LOG: '${GLF_LOG}'. Options: [INSPECT, DEBUG]"
+log INFO "GLAB_LOG: '${GLAB_LOG}'. Options: [INSPECT, DEBUG]"
 
 argument_config() {
     __INSPECT=false
     __DEBUG=false
     __CRYPT=false
 
-    case "${GLF_LOG}" in
+    case "${GLAB_LOG}" in
         inspect|INSPECT)
             __INSPECT=true
             __DEBUG=true
@@ -43,7 +43,7 @@ env_deploy() {
     log INFO "Deploying plain .env files to '${ENV_HOME}'"
     mkdir -p "${ENV_HOME}"
     rm -rf "${ENV_HOME:?}/"*
-    cp -r dist/* "${ENV_HOME}/"
+    cp -r .opt/* "${ENV_HOME}/"
     ansi-cmd tree ${ENV_HOME}
     #ls -laR "${ENV_HOME}"
 }
@@ -51,7 +51,7 @@ env_deploy() {
 env_deploy_crypt() {
     log INFO "Encrypting .env files to session-request directory..."
     assert ENV PDS_TOKEN
-    find dist/ -type f -name '*.env' | while read -r FILE_PATH; do 
+    find .opt/ -type f -name '*.env' | while read -r FILE_PATH; do 
         FILE_NAME=$(basename "${FILE_PATH}")
         FILE_BASE="${FILE_NAME%.*}"
         SESSION_REQUEST_NAME="${FILE_BASE//./-}.env-session-request"

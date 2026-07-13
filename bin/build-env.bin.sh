@@ -2,14 +2,14 @@
 
 set -e
 
-log INFO "GLF_LOG: '${GLF_LOG}'. Options: [INSPECT, DEBUG]"
+log INFO "GLAB_LOG: '${GLAB_LOG}'. Options: [INSPECT, DEBUG]"
 
 argument_config() {
     __INSPECT=false
     __DEBUG=false
     __CRYPT=false
 
-    case "${GLF_LOG}" in
+    case "${GLAB_LOG}" in
         inspect|INSPECT)
             __INSPECT=true
             __DEBUG=true
@@ -89,16 +89,16 @@ env_build() {
         return 1
     fi
 
-    mkdir -p dist
+    mkdir -p .opt
     export ENV_REVISION=${AMS_REVISION}
     export ENV_BUILD=${AMS_BUILD}
     ENV_HEAD=$(echo -e "AHS_REVISION=${AHS_REVISION}\nAHS_BUILD=${AHS_BUILD}\nENV_REVISION=${ENV_REVISION}\nENV_BUILD=${ENV_BUILD}\n")
     (
         cd src
         for FILE in *.env; do
-            echo "${ENV_HEAD}" > "../dist/${FILE}"
-            echo >> "../dist/${FILE}"
-            cat "${FILE}" >> "../dist/${FILE}"
+            echo "${ENV_HEAD}" > "../.opt/${FILE}"
+            echo >> "../.opt/${FILE}"
+            cat "${FILE}" >> "../.opt/${FILE}"
         done
     )
 }
@@ -127,11 +127,11 @@ env_build_crypt() {
         log INFO "Repo is successfully unlocked"
     fi
 
-    mkdir -p dist
+    mkdir -p .opt
     export ENV_REVISION=${AMS_REVISION}
     export ENV_BUILD=${AMS_BUILD}
     ENV_HEAD=`echo -e "AHS_REVISION=${AHS_REVISION}\nAHS_BUILD=${AHS_BUILD}\nENV_REVISION=${ENV_REVISION}\nENV_BUILD=${ENV_BUILD}\n"`
-    (cd src && for FILE in *.env; do echo "${ENV_HEAD}" > ../dist/${FILE} && echo >> ../dist/${FILE} && cat ${FILE} >> ../dist/${FILE}; done)
+    (cd src && for FILE in *.env; do echo "${ENV_HEAD}" > ../.opt/${FILE} && echo >> ../.opt/${FILE} && cat ${FILE} >> ../.opt/${FILE}; done)
 }
 
 ctx AHS_ORIGIN

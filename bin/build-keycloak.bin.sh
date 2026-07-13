@@ -17,7 +17,7 @@ argument_config() {
             __DEBUG=true
             ;;
     esac
-    
+
     while [[ "$#" -gt 0 ]]; do
         case $1 in
             --inspect) __INSPECT=true ;;
@@ -36,17 +36,15 @@ argument_config() {
     fi
 }
 
-check_pipeline_source() {
-  if [ "${CI_PIPELINE_SOURCE}" != "pipeline" ]; then
-    log INFO "Skipping further execution. CI_PIPELINE_SOURCE is '${CI_PIPELINE_SOURCE}'."
-    log INFO "This pipeline is designed to process pipelines with CI_PIPELINE_SOURCE: 'pipeline'."
-    exit 0
-  fi
+build_keycloak() {
+    mkdir -p .opt/init
+    cp -r .init/* .opt/init/
+    mkdir -p .opt/keycloak/themes
+    cp -r src/themes/* .opt/keycloak/themes/
 }
 
 ctx AHS_ORIGIN
 
 argument_config "$@"
-check_pipeline_source
 
-ctx AMS_PIPELINE
+build_keycloak

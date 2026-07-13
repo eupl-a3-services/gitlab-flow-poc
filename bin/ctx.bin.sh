@@ -48,15 +48,9 @@ ams_pipeline_ctx() {
 ams_deploy_ctx() {
     _context 80 20 AMS-DEPLOY-CTX
     _ctx AMS_NAME ${AMS_NAME}
-    _ctx AMS_PARTITION ${AMS_PARTITION}
-#    _ctx AMS_BUILD ${AMS_BUILD}
-    _ctx AMS_AREA ${AMS_AREA}
-    _ctx AMS_DOMAIN ${AMS_DOMAIN}
-
-    _ctx AMS_REVISION ${AMS_REVISION}
-#    _ctx AMS_DIST ${AMS_DIST}
-    _ctx AMS_DEPLOY ${AMS_DEPLOY}
+    _ctx AMS_ENV ${AMS_ENV}
     _ctx AMS_RELEASE ${AMS_RELEASE}
+    _ctx AMS_DEPLOY ${AMS_DEPLOY}
     _ctx AMS_SPACE ${AMS_SPACE}
     _ctx
     _ctx AMS ${AMS}
@@ -73,13 +67,10 @@ ams_image_ctx() {
 
 ams_ping_ctx() {
     _context 80 20 AMS-PING-CTX
-    _ctx AMS_NAMES ${AMS_NAMES_STR}
     _ctx AMS_NAME ${AMS_NAME}
     _ctx AMS_REVISION ${AMS_REVISION}
     _ctx AMS_DEPLOY ${AMS_DEPLOY}
     _ctx AMS_SPACE ${AMS_SPACE}
-    _ctx AMS_AREA ${AMS_AREA}
-    _ctx AMS_DOMAIN ${AMS_DOMAIN}
     _ctx AMS_HOST ${AMS_HOST}
     _ctx AMS_ENDPOINT ${AMS_ENDPOINT}
     _ctx

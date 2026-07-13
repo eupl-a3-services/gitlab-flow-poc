@@ -2,13 +2,13 @@
 
 set -e
 
-log INFO "GLF_LOG: '${GLF_LOG}'. Options: [INSPECT, DEBUG]"
+log INFO "GLAB_LOG: '${GLAB_LOG}'. Options: [INSPECT, DEBUG]"
 
 argument_config() {
     __INSPECT=false
     __DEBUG=false
 
-    case "${GLF_LOG}" in
+    case "${GLAB_LOG}" in
         inspect|INSPECT)
             __INSPECT=true
             __DEBUG=true
@@ -105,11 +105,11 @@ ams_rollout() {
 
 env_files() {
     ORIGIN_ENV=origin.env
-    AMS_ORIGIN_ENV=ams-origin.env
+    AMS_ORIGIN_ENV=.env
 
     log DEBUG "Exporting environment variables to ${ORIGIN_ENV}"
     env | sort > ${ORIGIN_ENV}
-    if [ "${GLF_LOG_LEVEL}" = "DEBUG" ]; then
+    if [ "${GLAB_LOG_LEVEL}" = "DEBUG" ]; then
         cat ${ORIGIN_ENV}
     fi
 
@@ -117,7 +117,7 @@ env_files() {
         export AMS_REVISION="$CI_COMMIT_TAG"
     elif [ -d .git ]; then
         git config --global --add safe.directory ${PWD}
-        if [ "${GLF_LOG_LEVEL}" = "DEBUG" ]; then
+        if [ "${GLAB_LOG_LEVEL}" = "DEBUG" ]; then
             git fetch --unshallow || git fetch
         else
             git fetch --unshallow > /dev/null 2>&1 || git fetch > /dev/null 2>&1
@@ -128,7 +128,6 @@ env_files() {
     fi
 
     export AMS_NAME=${CI_PROJECT_NAME}
-    export AMS_ROLLOUT=${CI_COMMIT_BRANCH}
     export AMS_TRIGGER=${CI_PIPELINE_SOURCE}
     export AMS_REVISION=${AMS_REVISION}
     export AMS_BUILD=`date '+%y%m%d-%H%M%S'`
@@ -138,8 +137,10 @@ env_files() {
     export AMS_REGISTRY=${CI_REGISTRY_IMAGE}
 
     if [[ "${CI_COMMIT_BRANCH}" == "${CI_DEFAULT_BRANCH}" ]]; then
-        assert ENV ROLLOUT_DEFAULT
-        export AMS_ROLLOUT="${ROLLOUT_DEFAULT}"
+        assert ENV AMS_ROLLOUT @/0.0.0/default
+        #export AMS_ROLLOUT="${AMS_ROLLOUT}"
+    else
+        export AMS_ROLLOUT=${CI_COMMIT_BRANCH}
     fi
 
     #assert ENV ROLLOUT_HOME

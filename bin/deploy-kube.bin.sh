@@ -2,7 +2,7 @@
 
 set -e
 
-log INFO "GLF_LOG: '${GLF_LOG}'. Options: [INSPECT, DEBUG]"
+log INFO "GLAB_LOG: '${GLAB_LOG}'. Options: [INSPECT, DEBUG]"
 
 argument_config() {
     __INSPECT=false
@@ -13,7 +13,7 @@ argument_config() {
     __DOWNSTREAM=false
     __HIDE_ENV_VALUES=false
 
-    case "${GLF_LOG}" in
+    case "${GLAB_LOG}" in
         inspect|INSPECT)
             __INSPECT=true
             __DEBUG=true
@@ -56,30 +56,16 @@ argument_config() {
 space_setup() {
     if [ "$AMS_PARTITION" == "downstream" ]; then
         assert ENV AMS_TRIGGER_JOB
-        export AMS_SPACE="${AMS_TRIGGER_JOB##*:}"
+        export AMS_ENV="${AMS_TRIGGER_JOB##*:}"
     else
-        export AMS_SPACE="${CI_JOB_NAME##*:}"
+        export AMS_ENV="${CI_JOB_NAME##*:}"
     fi
+    export AMS_SPACE=${AMS_ENV}
     if [ "$AMS_PARTITION" != "unit" ] && [ "$AMS_PARTITION" != "downstream" ]; then
         export AMS_SPACE="${AMS_SPACE}-${AMS_SEGMENT}"
     fi
 
     export AMS_DEPLOY=$(date '+%y%m%d-%H%M%S')
-
-    case "${AMS_PARTITION}" in
-        unit|downstream)
-            export AMS_AREA=""
-            ;;
-        zone)
-            export AMS_AREA="-${AMS_SPACE}"
-            ;;
-        shared)
-            export AMS_AREA="-${AMS_SEGMENT}"
-            ;;
-        *)
-            export AMS_AREA="-no-area"
-            ;;
-    esac
 
     export KUBE_COMPOSE_NAME=kube-compose
     export KUBE_SPACE_NAME=kube-space
@@ -184,8 +170,8 @@ kube_node() {
         log INFO "KUBE_NODE_ENV: ${KUBE_NODE}"
         IFS=', ' read -r -a KUBE_NODE_ARRAY <<< "$KUBE_NODE"
 
-        INPUT_FILE="${DIR}/\$${KUBE_NODE_NAME}-${AMS_NAME}.${KUBE_EXT}"
-        OUTPUT_FILE="${DIR}/\$${KUBE_COMPOSE_NAME}-${AMS_NAME}.${KUBE_EXT}"
+        INPUT_FILE="${DIR}/\$${KUBE_NODE_NAME}.${AMS_NAME}.${KUBE_EXT}"
+        OUTPUT_FILE="${DIR}/\$${KUBE_COMPOSE_NAME}.${AMS_NAME}.${KUBE_EXT}"
 
         if [[ -f "${INPUT_FILE}" ]]; then
             log INFO "KUBE_NODE_FILE: ${INPUT_FILE}"
@@ -221,24 +207,24 @@ kube_space() {
     IFS=', ' read -r -a KUBE_SPACE_ARRAY <<< "$KUBE_SPACE"
 
     for space in "${KUBE_SPACE_ARRAY[@]}"; do
-        log INFO "Processing SPACE: ${space}"
+        log INFO "  Processing SPACE: ${space}"
         if ! kubectl get namespace "ns-${space}" > /dev/null 2>&1; then
             ansi-cmd kubectl create namespace "ns-${space}"
-            log INFO "Namespace 'ns-${space}' has been created."
+            log INFO "    Namespace 'ns-${space}' has been created."
         else
-            log INFO "Namespace 'ns-${space}' already exists."
+            log INFO "    Namespace 'ns-${space}' already exists."
         fi
     done
 
     for file in ${DIR}/'$'${KUBE_SPACE_NAME}*.${KUBE_EXT}; do        
         AMS_NAME=${AMS_NAME_ORIGIN}
         KUBE_SPACE_SUFFIX=$(basename "$file" | sed -E "s/^\\\$${KUBE_SPACE_NAME}(.*)\.${KUBE_EXT}$/\1/")
-        if [[ ${#KUBE_SPACE_SUFFIX} -gt 1 && "${KUBE_SPACE_SUFFIX}" == -* ]]; then
+        if [[ ${#KUBE_SPACE_SUFFIX} -gt 1 && "${KUBE_SPACE_SUFFIX}" == .* ]]; then
             AMS_NAME="${KUBE_SPACE_SUFFIX:1}"
         fi
 
-        INPUT_FILE="${DIR}/\$${KUBE_SPACE_NAME}-${AMS_NAME}.${KUBE_EXT}"
-        OUTPUT_FILE="${DIR}/\$${KUBE_COMPOSE_NAME}-${AMS_NAME}.${KUBE_EXT}"
+        INPUT_FILE="${DIR}/\$${KUBE_SPACE_NAME}.${AMS_NAME}.${KUBE_EXT}"
+        OUTPUT_FILE="${DIR}/\$${KUBE_COMPOSE_NAME}.${AMS_NAME}.${KUBE_EXT}"
 
         if [[ -f "${INPUT_FILE}" ]]; then
             log INFO "KUBE_SPACE_FILE: ${INPUT_FILE}"
@@ -258,7 +244,7 @@ kube_space() {
 
 kube_compose() {
     PROCESSED=-processed
-    AMS_NAMES_LOCAL=()
+    declare -gA AMS_HOSTS=()
 
     #export request_uri='$request_uri'       # used for snippet redirect in ingress
     export hostname='${HOSTNAME}'           # used for stateless pod name
@@ -285,7 +271,7 @@ kube_compose() {
         
         AMS_NAME=${AMS_NAME_ORIGIN}
         KUBE_COMPOSE_SUFFIX=$(basename "$file" | sed -E "s/^\\\$${KUBE_COMPOSE_NAME}(.*)\.${KUBE_EXT}$/\1/")
-        if [[ ${#KUBE_COMPOSE_SUFFIX} -gt 1 && "${KUBE_COMPOSE_SUFFIX}" == -* ]]; then
+        if [[ ${#KUBE_COMPOSE_SUFFIX} -gt 1 && "${KUBE_COMPOSE_SUFFIX}" == .* ]]; then
             AMS_NAME="${KUBE_COMPOSE_SUFFIX:1}"
         fi
         log INFO AMS_NAME: ${AMS_NAME}
@@ -308,19 +294,22 @@ kube_compose() {
         | sort -u \
         | xargs -I{} echo -n '$'{}' ')
 
-        # Spusť envsubst len s nimi
-        envsubst "$VARS" < "$file" > "${file%.yml}${PROCESSED}.${KUBE_EXT}"
+        GENERATED_FILE="${file%.yml}${PROCESSED}.${KUBE_EXT}"
 
-        if [[ ! " ${AMS_NAMES_LOCAL[@]} " =~ " ${AMS_NAME} " ]]; then
-            AMS_NAMES_LOCAL+=("${AMS_NAME}")
+        envsubst "$VARS" < "$file" > "${GENERATED_FILE}"
+
+        local AMS_HOST=$(yq '. | select(.kind == "Ingress") | .spec.rules[0].host' "${GENERATED_FILE}" 2>/dev/null)
+
+        log INFO AMS_NAME: ${AMS_NAME}
+        log INFO AMS_HOST: ${AMS_HOST}
+
+        if [[ -n "${AMS_HOST}" && "${AMS_HOST}" != "null" ]]; then
+            AMS_HOSTS["$AMS_NAME"]="${AMS_HOST}"
         fi
-    done
 
-    for processed_file in $(ls $DIR/*${PROCESSED}.${KUBE_EXT} | sort); do
-        #echo "---" >> ${KUBE_COMPOSE_NAME}.${KUBE_EXT}
-        original_file_name=$(basename "$processed_file" | sed "s/${PROCESSED}//")
+        original_file_name=$(basename "${GENERATED_FILE}" | sed "s/${PROCESSED}//")
         echo "--- # FILE: $original_file_name" >> ${KUBE_COMPOSE_NAME}.${KUBE_EXT}
-        cat "$processed_file" >> ${KUBE_COMPOSE_NAME}.${KUBE_EXT}
+        cat "${GENERATED_FILE}" >> ${KUBE_COMPOSE_NAME}.${KUBE_EXT}
         echo "" >> ${KUBE_COMPOSE_NAME}.${KUBE_EXT}
     done
 
@@ -334,10 +323,6 @@ kube_compose() {
         log INFO "KUBE_SESSION_REQUEST_FILE is stored in \"${SESSION_REQUEST_FILE}\""
     else
         ansi-cat "${KUBE_COMPOSE_NAME}.${KUBE_EXT}"
-    fi
-    
-    if [[ -z "${AMS_NAMES[*]}" ]]; then
-        AMS_NAMES=("${AMS_NAMES_LOCAL[@]}")
     fi
 }
 
@@ -384,14 +369,15 @@ kube_deploy() {
 
 ams_ping() {
     if [ "$__NOPING" = false ]; then
-        # assert ENV AMS_DOMAIN
-        . ansi-array AMS_NAMES
-        for name in "${AMS_NAMES[@]}"; do
+        . ansi-array AMS_HOSTS
+        for name in "${!AMS_HOSTS[@]}"; do
             export AMS_NAME="$name"
             log INFO "Pinging AMS_NAME=$AMS_NAME"
-            export AMS_NAMES_STR=${AMS_NAMES[*]}
-            export AMS_HOST="${AMS_NAME}${AMS_AREA}.${AMS_DOMAIN}"
+            
+            # Priame priradenie hosta z YAML súboru
+            export AMS_HOST="${AMS_HOSTS[$name]}"
             export AMS_ENDPOINT="https://${AMS_HOST}/ams"
+            
             ams-ping
         done
     else
